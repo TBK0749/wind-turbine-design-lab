@@ -22,7 +22,9 @@ def test_streamlit_app_renders_english_guide_and_glossary() -> None:
 
     assert not app.exception
     assert any(section.value == "Quick start guide" for section in app.subheader)
+    assert any(section.value == "Local installation guide" for section in app.subheader)
     assert any(section.value == "Key terms glossary" for section in app.subheader)
+    assert any("Run the app locally" in text.value for text in app.markdown)
     assert any("Power coefficient (Cp)" in text.value for text in app.markdown)
     assert any("Tip-speed ratio (TSR)" in text.value for text in app.markdown)
     assert any("Competition power (mW)" in text.value for text in app.markdown)

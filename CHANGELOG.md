@@ -14,6 +14,8 @@ All notable changes follow Semantic Versioning.
 - Classroom airfoil families with simplified lift/drag, Reynolds number, stall warning,
   and mW impact.
 - English dashboard guide and key-term glossary.
+- Local installation guide in README and dashboard Guide.
+- Streamlit viewer toolbar mode to hide local Deploy controls from students.
 
 ## [0.1.0] - 2026-06-25
 

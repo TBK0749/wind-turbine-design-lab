@@ -39,6 +39,57 @@ def render_quick_start_guide() -> None:
         icon="ℹ️",
     )
 
+    st.subheader("Local installation guide")
+    st.write(
+        "Use these steps when sharing the GitHub repository with students, teammates, "
+        "or judges who will run the simulator on their own computers."
+    )
+
+    st.markdown(
+        """
+1. **Install Python 3.12 or newer.**
+2. **Install Git** if you want to clone the repository. If not, use GitHub's
+   **Download as ZIP** option.
+3. **Install uv** for dependency setup.
+4. **Get the project from GitHub.**
+
+   Clone with Git:
+
+   ```bash
+   git clone https://github.com/TBK0749/wind-turbine-design-lab.git
+   cd wind-turbine-design-lab
+   ```
+
+   Or use **Download as ZIP**, unzip the folder, and open a terminal in that folder.
+
+5. **Install dependencies.**
+
+   ```bash
+   uv sync
+   ```
+
+6. **Run the app locally.**
+
+   ```bash
+   uv run streamlit run app/main.py
+   ```
+
+7. **Open the local URL.**
+
+   ```text
+   http://127.0.0.1:8501
+   ```
+
+8. **Stop the app** by returning to the terminal and pressing `Ctrl + C`.
+"""
+    )
+
+    st.warning(
+        "Do not click Deploy for local classroom use. The app runs on your computer, "
+        "and no cloud service is required.",
+        icon="⚠️",
+    )
+
 
 def render_key_terms_glossary() -> None:
     """Render concise definitions for the main engineering terms."""

@@ -22,23 +22,76 @@ blade geometry, mass, and material affect estimated turbine performance.
 - Download the current result as CSV or JSON.
 - Run completely on the user's computer.
 
-## Install
+## Local installation guide
 
-Install Python 3.12+, Git, and [uv](https://docs.astral.sh/uv/), then run:
+This project is designed to run on each user's own computer. You do not need
+cloud hosting, Streamlit Cloud, or any paid service for local classroom use.
+
+### 1. Install requirements
+
+Install:
+
+- Python 3.12 or newer
+- Git, if you want to clone the repository
+- [uv](https://docs.astral.sh/uv/), recommended for simple dependency setup
+
+### 2. Get the project
+
+Option A — clone with Git:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/TBK0749/wind-turbine-design-lab.git
 cd wind-turbine-design-lab
+```
+
+Option B — Download as ZIP:
+
+1. Open the GitHub repository page.
+2. Click `Code`.
+3. Click `Download ZIP`.
+4. Unzip the file.
+5. Open a terminal in the unzipped project folder.
+
+### 3. Install dependencies
+
+With uv:
+
+```bash
 uv sync
 ```
 
-## Run
+### 4. Run the app locally
 
 ```bash
 uv run streamlit run app/main.py
 ```
 
-Streamlit normally opens `http://localhost:8501`.
+Streamlit normally opens:
+
+```text
+http://localhost:8501
+```
+
+or:
+
+```text
+http://127.0.0.1:8501
+```
+
+### 5. Stop the app
+
+Return to the terminal that is running Streamlit and press:
+
+```text
+Ctrl + C
+```
+
+### Common local issues
+
+- If Streamlit asks for an email address, press `Enter` without typing anything.
+- If port `8501` is busy, stop the old Streamlit terminal with `Ctrl + C`, then run again.
+- Do not click Deploy. This project is meant to run locally unless your teacher
+  explicitly asks you to publish it online.
 
 ## Quality checks
 

@@ -1,0 +1,3 @@
+[client]
+# Hide developer-only toolbar actions such as Deploy for local classroom users.
+toolbarMode = "viewer"
