@@ -18,6 +18,7 @@ blade geometry, mass, and material affect estimated turbine performance.
 - Plot RPM, torque, and power across a wind-speed range.
 - Estimate competition voltage, current, electrical power in mW, and trial energy.
 - Configure generator voltage constant, resistance, load, efficiency, gearing, and time.
+- Read the built-in English guide and key-term glossary in the dashboard.
 - Download the current result as CSV or JSON.
 - Run completely on the user's computer.
 

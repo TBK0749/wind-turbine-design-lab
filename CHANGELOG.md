@@ -13,6 +13,7 @@ All notable changes follow Semantic Versioning.
 - Blade cutting preview and chord/twist distribution charts.
 - Classroom airfoil families with simplified lift/drag, Reynolds number, stall warning,
   and mW impact.
+- English dashboard guide and key-term glossary.
 
 ## [0.1.0] - 2026-06-25
 
