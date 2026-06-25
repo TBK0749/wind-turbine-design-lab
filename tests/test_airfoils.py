@@ -1,0 +1,54 @@
+import pytest
+
+from windlab.airfoils import AIRFOIL_LIBRARY, estimate_airfoil_performance
+
+
+def test_airfoil_library_contains_classroom_options() -> None:
+    assert set(AIRFOIL_LIBRARY) == {
+        "Flat plate / Foam board",
+        "Cambered plate",
+        "Symmetric airfoil",
+        "High-lift airfoil",
+    }
+
+
+def test_cambered_plate_outperforms_flat_plate_at_moderate_angle() -> None:
+    flat = estimate_airfoil_performance(
+        "Flat plate / Foam board",
+        angle_of_attack_deg=6.0,
+        reynolds_number=150_000.0,
+    )
+    cambered = estimate_airfoil_performance(
+        "Cambered plate",
+        angle_of_attack_deg=6.0,
+        reynolds_number=150_000.0,
+    )
+
+    assert cambered.lift_drag_ratio > flat.lift_drag_ratio
+    assert cambered.efficiency_factor > flat.efficiency_factor
+
+
+def test_high_angle_warns_about_stall_and_penalizes_efficiency() -> None:
+    moderate = estimate_airfoil_performance(
+        "High-lift airfoil",
+        angle_of_attack_deg=8.0,
+        reynolds_number=150_000.0,
+    )
+    stalled = estimate_airfoil_performance(
+        "High-lift airfoil",
+        angle_of_attack_deg=24.0,
+        reynolds_number=150_000.0,
+    )
+
+    assert stalled.stall_risk
+    assert stalled.efficiency_factor < moderate.efficiency_factor
+    assert any("stall" in warning.lower() for warning in stalled.warnings)
+
+
+def test_unknown_airfoil_is_rejected() -> None:
+    with pytest.raises(ValueError, match="Airfoil"):
+        estimate_airfoil_performance(
+            "Magic airfoil",
+            angle_of_attack_deg=6.0,
+            reynolds_number=150_000.0,
+        )

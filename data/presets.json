@@ -10,6 +10,7 @@
     "tip_chord_m": 0.02,
     "pitch_angle_deg": 0.0,
     "twist_angle_deg": 20.0,
+    "airfoil_type": "Flat plate / Foam board",
     "blade_sections": [
       {"position_m": 0.05, "chord_m": 0.09, "twist_angle_deg": 20.0},
       {"position_m": 0.15, "chord_m": 0.075, "twist_angle_deg": 14.0},

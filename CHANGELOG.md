@@ -11,6 +11,8 @@ All notable changes follow Semantic Versioning.
 - Electrical-power performance curve.
 - Editable multi-section blade geometry table with a 50 cm competition preset.
 - Blade cutting preview and chord/twist distribution charts.
+- Classroom airfoil families with simplified lift/drag, Reynolds number, stall warning,
+  and mW impact.
 
 ## [0.1.0] - 2026-06-25
 

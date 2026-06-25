@@ -9,6 +9,8 @@ def test_streamlit_app_renders_competition_result() -> None:
 
     assert not app.exception
     assert any(metric.label == "Competition power" for metric in app.metric)
+    assert any(metric.label == "Airfoil efficiency" for metric in app.metric)
     assert any(section.value == "Blade geometry table" for section in app.subheader)
     assert any(section.value == "Blade build preview" for section in app.subheader)
+    assert any(section.value == "Airfoil result" for section in app.subheader)
     assert any(section.value == "Competition result" for section in app.subheader)

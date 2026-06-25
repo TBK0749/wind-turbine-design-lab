@@ -37,3 +37,18 @@ def render_competition_cards(result: SimulationResult) -> None:
         "Mechanical → load",
         f"{result.conversion_efficiency_percent:,.2f}%",
     )
+
+
+def render_airfoil_cards(result: SimulationResult) -> None:
+    """Display simplified airfoil lift/drag indicators."""
+
+    first = st.columns(4)
+    first[0].metric("Airfoil efficiency", f"{result.airfoil_efficiency_factor:.3f}×")
+    first[1].metric("Lift / drag", f"{result.airfoil_lift_drag_ratio:.1f}")
+    first[2].metric("Angle of attack", f"{result.airfoil_angle_of_attack_deg:.1f}°")
+    first[3].metric("Reynolds number", f"{result.airfoil_reynolds_number:,.0f}")
+
+    second = st.columns(3)
+    second[0].metric("Lift coefficient", f"{result.airfoil_lift_coefficient:.3f}")
+    second[1].metric("Drag coefficient", f"{result.airfoil_drag_coefficient:.4f}")
+    second[2].metric("Stall risk", "Yes" if result.airfoil_stall_risk else "No")

@@ -14,6 +14,11 @@ def test_unknown_material_is_rejected() -> None:
         SimulationInput(material="Unobtainium")
 
 
+def test_unknown_airfoil_is_rejected() -> None:
+    with pytest.raises(ValidationError, match="Airfoil"):
+        SimulationInput(airfoil_type="Magic airfoil")
+
+
 def test_section_cannot_extend_beyond_blade_tip() -> None:
     with pytest.raises(ValidationError, match="final blade section"):
         SimulationInput(

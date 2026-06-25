@@ -12,6 +12,7 @@ blade geometry, mass, and material affect estimated turbine performance.
 - Configure wind, rotor, blade geometry, mass, and material.
 - Design a blade with editable radial Position, Chord, and Twist stations.
 - Preview the cutting outline and chord/twist distribution for fabrication.
+- Choose a classroom airfoil family and review simplified lift/drag feedback.
 - Estimate RPM, torque, mechanical power, Cp, tip-speed ratio, and efficiency.
 - Review a student-friendly design score and recommendations.
 - Plot RPM, torque, and power across a wind-speed range.

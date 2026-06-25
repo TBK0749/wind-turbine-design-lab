@@ -3,6 +3,7 @@
 import pandas as pd
 import streamlit as st
 
+from windlab.airfoils import AIRFOIL_LIBRARY
 from windlab.blade_geometry import competition_50cm_sections
 from windlab.materials import MATERIALS
 from windlab.models import BladeSection, SimulationInput
@@ -105,6 +106,14 @@ def render_input_panel() -> SimulationInput:
         tip_chord = st.number_input("Tip chord (m)", 0.005, 10.0, 0.08, 0.005)
         twist = st.slider("Twist angle (°)", 0.0, 45.0, 12.0, 0.5)
 
+    with st.sidebar.expander("Airfoil", expanded=True):
+        airfoil_type = st.selectbox(
+            "Airfoil type",
+            list(AIRFOIL_LIBRARY),
+            help="Choose the blade cross-section family used by the simplified lift/drag model.",
+        )
+        st.caption(AIRFOIL_LIBRARY[airfoil_type].description)
+
     with st.sidebar.expander("Blade physical", expanded=True):
         blade_mass = st.number_input("Mass per blade (kg)", 0.01, 10000.0, 1.0, 0.1)
         material = st.selectbox("Material", list(MATERIALS))
@@ -132,6 +141,7 @@ def render_input_panel() -> SimulationInput:
         pitch_angle_deg=pitch,
         twist_angle_deg=twist,
         blade_sections=blade_sections,
+        airfoil_type=airfoil_type,
         blade_mass_kg=blade_mass,
         material=material,
         generator_volts_per_1000_rpm=volts_per_1000_rpm,

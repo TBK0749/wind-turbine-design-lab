@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from windlab.airfoils import AIRFOIL_LIBRARY
 from windlab.materials import MATERIALS
 
 
@@ -30,6 +31,7 @@ class SimulationInput(BaseModel):
     pitch_angle_deg: float = Field(4.0, ge=-10.0, le=35.0)
     twist_angle_deg: float = Field(12.0, ge=0.0, le=45.0)
     blade_sections: tuple[BladeSection, ...] = ()
+    airfoil_type: str = Field("Flat plate / Foam board")
     blade_mass_kg: float = Field(1.0, gt=0.01, le=10000.0)
     material: str = Field("Wood")
     generator_volts_per_1000_rpm: float = Field(1.5, gt=0.01, le=100.0)
@@ -47,6 +49,8 @@ class SimulationInput(BaseModel):
             raise ValueError("Hub radius must be smaller than rotor radius.")
         if self.material not in MATERIALS:
             raise ValueError(f"Material must be one of: {', '.join(MATERIALS)}.")
+        if self.airfoil_type not in AIRFOIL_LIBRARY:
+            raise ValueError(f"Airfoil must be one of: {', '.join(AIRFOIL_LIBRARY)}.")
         if self.blade_sections:
             if len(self.blade_sections) < 2:
                 raise ValueError("Sectional geometry requires at least two blade sections.")
@@ -79,5 +83,12 @@ class SimulationResult(BaseModel):
     electrical_power_mw: float
     electrical_energy_mj: float
     conversion_efficiency_percent: float
+    airfoil_lift_coefficient: float
+    airfoil_drag_coefficient: float
+    airfoil_lift_drag_ratio: float
+    airfoil_efficiency_factor: float
+    airfoil_angle_of_attack_deg: float
+    airfoil_reynolds_number: float
+    airfoil_stall_risk: bool
     recommendations: tuple[str, ...]
     warnings: tuple[str, ...] = ()

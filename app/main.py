@@ -15,6 +15,7 @@ from app.components.blade_geometry import render_blade_geometry  # noqa: E402
 from app.components.charts import render_performance_charts  # noqa: E402
 from app.components.input_panel import render_input_panel  # noqa: E402
 from app.components.result_cards import (  # noqa: E402
+    render_airfoil_cards,
     render_competition_cards,
     render_result_cards,
 )
@@ -45,6 +46,13 @@ except (ValidationError, ValueError) as error:
 render_result_cards(simulation_result)
 
 render_blade_geometry(simulation_input)
+
+st.subheader("Airfoil result")
+render_airfoil_cards(simulation_result)
+st.caption(
+    "Simplified lift/drag estimate for the selected blade cross-section. "
+    "This guides classroom comparisons, not certified aerodynamic design."
+)
 
 st.subheader("Competition result")
 render_competition_cards(simulation_result)
@@ -87,8 +95,9 @@ with st.expander("Model details"):
     st.write(
         "Available wind power is calculated as ½ρAV³. Mechanical power is Cp times "
         "available power. RPM is estimated from tip-speed ratio, and torque is power "
-        "divided by angular speed. Generator voltage scales with RPM; current is estimated "
-        "from generator and load resistance. Electrical output cannot exceed the available "
-        "mechanical power after generator efficiency. Cp and TSR remain educational "
-        "approximations."
+        "divided by angular speed. The airfoil model estimates representative lift, drag, "
+        "stall risk, and Reynolds number from the selected cross-section family. Generator "
+        "voltage scales with RPM; current is estimated from generator and load resistance. "
+        "Electrical output cannot exceed the available mechanical power after generator "
+        "efficiency. Cp, TSR, and airfoil values remain educational approximations."
     )

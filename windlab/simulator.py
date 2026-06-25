@@ -5,6 +5,7 @@ import io
 import json
 from collections.abc import Iterable
 
+from windlab.airfoils import estimate_airfoil_performance
 from windlab.blade_geometry import summarize_blade_geometry
 from windlab.generator import simulate_generator
 from windlab.materials import get_material
@@ -20,6 +21,38 @@ from windlab.physics import (
 )
 from windlab.scoring import build_recommendations, design_score
 
+AIR_DYNAMIC_VISCOSITY_KG_M_S = 1.81e-5
+
+
+def estimate_representative_angle_of_attack(
+    pitch_angle_deg: float,
+    representative_twist_deg: float,
+) -> float:
+    """Estimate a mid-span angle of attack for the educational airfoil model."""
+
+    return pitch_angle_deg + 0.35 * representative_twist_deg
+
+
+def estimate_reynolds_number(
+    *,
+    air_density_kg_m3: float,
+    wind_speed_m_s: float,
+    chord_m: float,
+) -> float:
+    """Estimate blade-section Reynolds number from wind speed and representative chord."""
+
+    return air_density_kg_m3 * wind_speed_m_s * chord_m / AIR_DYNAMIC_VISCOSITY_KG_M_S
+
+
+def adjust_tip_speed_ratio_for_airfoil(
+    tip_speed_ratio: float,
+    airfoil_efficiency_factor: float,
+) -> float:
+    """Let draggy airfoils slow the rotor while efficient sections preserve RPM."""
+
+    speed_factor = 0.75 + 0.25 * airfoil_efficiency_factor
+    return min(12.0, max(1.0, tip_speed_ratio * speed_factor))
+
 
 def simulate(inputs: SimulationInput) -> SimulationResult:
     """Run one deterministic educational simulation."""
@@ -28,10 +61,27 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
     geometry = summarize_blade_geometry(inputs)
     area = rotor_swept_area(inputs.rotor_radius_m, inputs.hub_radius_m)
     wind_power = available_wind_power(inputs.air_density_kg_m3, area, inputs.wind_speed_m_s)
-    tsr = estimate_tip_speed_ratio(
-        inputs.blade_count,
+    angle_of_attack = estimate_representative_angle_of_attack(
         inputs.pitch_angle_deg,
         geometry.representative_twist_deg,
+    )
+    reynolds_number = estimate_reynolds_number(
+        air_density_kg_m3=inputs.air_density_kg_m3,
+        wind_speed_m_s=inputs.wind_speed_m_s,
+        chord_m=geometry.mean_chord_m,
+    )
+    airfoil = estimate_airfoil_performance(
+        inputs.airfoil_type,
+        angle_of_attack_deg=angle_of_attack,
+        reynolds_number=reynolds_number,
+    )
+    tsr = adjust_tip_speed_ratio_for_airfoil(
+        estimate_tip_speed_ratio(
+            inputs.blade_count,
+            inputs.pitch_angle_deg,
+            geometry.representative_twist_deg,
+        ),
+        airfoil.efficiency_factor,
     )
     cp = estimate_cp(
         tip_speed_ratio=tsr,
@@ -41,7 +91,7 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         rotor_radius_m=inputs.rotor_radius_m,
         pitch_angle_deg=inputs.pitch_angle_deg,
         twist_angle_deg=geometry.representative_twist_deg,
-        roughness_factor=material.roughness_factor,
+        roughness_factor=material.roughness_factor * airfoil.efficiency_factor,
         mean_chord_m=geometry.mean_chord_m,
     )
     mechanical_power = cp * wind_power
@@ -66,6 +116,7 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         )
     if inputs.rotor_radius_m > 10.0:
         warnings.append("Large rotor: simplified assumptions become increasingly unrealistic.")
+    warnings.extend(airfoil.warnings)
 
     return SimulationResult(
         rotor_area_m2=round(area, 4),
@@ -89,11 +140,20 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         electrical_power_mw=round(generator.electrical_power_mw, 4),
         electrical_energy_mj=round(generator.electrical_energy_mj, 4),
         conversion_efficiency_percent=round(generator.conversion_efficiency_percent, 2),
+        airfoil_lift_coefficient=airfoil.lift_coefficient,
+        airfoil_drag_coefficient=airfoil.drag_coefficient,
+        airfoil_lift_drag_ratio=airfoil.lift_drag_ratio,
+        airfoil_efficiency_factor=airfoil.efficiency_factor,
+        airfoil_angle_of_attack_deg=round(angle_of_attack, 2),
+        airfoil_reynolds_number=round(reynolds_number, 0),
+        airfoil_stall_risk=airfoil.stall_risk,
         recommendations=build_recommendations(
             inputs,
             cp,
             tsr,
             representative_twist_deg=geometry.representative_twist_deg,
+            airfoil_stall_risk=airfoil.stall_risk,
+            airfoil_efficiency_factor=airfoil.efficiency_factor,
         ),
         warnings=tuple(warnings),
     )

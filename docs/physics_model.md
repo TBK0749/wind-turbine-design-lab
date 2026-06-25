@@ -23,7 +23,8 @@ Pmechanical = Cp × Pwind
 Angular speed and RPM:
 
 ```text
-ω = λV / R
+λadjusted = λ × (0.75 + 0.25 × airfoil efficiency factor)
+ω = λadjustedV / R
 RPM = ω × 60 / (2π)
 ```
 
@@ -67,6 +68,27 @@ than inner stations. It then estimates Cp and tip-speed ratio from broad trends
 in blade count, chord, pitch, twist, and material roughness. Values are smoothly
 bounded, and Cp is kept below practical and Betz limits.
 
+The airfoil model is also simplified. Users choose one classroom airfoil family:
+flat plate / foam board, cambered plate, symmetric airfoil, or high-lift
+airfoil. The simulator estimates a representative angle of attack:
+
+```text
+αrepresentative = whole-blade pitch + 0.35 × representative twist
+```
+
+It estimates Reynolds number from air density, wind speed, and representative
+chord:
+
+```text
+Re = ρ × V × chord / μ
+```
+
+where μ is fixed at 1.81×10⁻⁵ kg/(m·s). Each airfoil family has classroom
+constants for lift slope, drag, stall angle, and an efficiency bias. The model
+produces estimated lift coefficient, drag coefficient, lift/drag ratio, airfoil
+efficiency factor, and stall risk. The efficiency factor adjusts Cp and slightly
+adjusts TSR/RPM so draggy airfoils can reduce the generator mW score.
+
 The supplied 50 cm competition preset uses:
 
 | Position (cm) | Chord (cm) | Twist (deg) |
@@ -83,8 +105,9 @@ preview. A later BEMT version will calculate forces independently at each
 station instead of reducing the table to representative values.
 
 The generator model is a simplified DC equivalent. It does not yet solve the
-two-way effect of electrical loading on rotor RPM, startup torque, nonlinear
-motor losses, rectifier losses, or battery charging. The aerodynamic model does
-not calculate airfoil lift/drag, Reynolds number, induction, structural stress,
-fatigue, control systems, or turbulent inflow. These require measured
-calibration data, BEMT, or higher-fidelity models.
+full two-way effect of electrical loading on rotor RPM, startup torque,
+nonlinear motor losses, rectifier losses, or battery charging. The aerodynamic
+model does not use measured airfoil polar files and does not calculate blade
+element induction, structural stress, fatigue, control systems, or turbulent
+inflow. These require measured calibration data, BEMT, or higher-fidelity
+models.

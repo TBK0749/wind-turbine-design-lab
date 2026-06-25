@@ -33,6 +33,8 @@ def build_recommendations(
     cp: float,
     tip_speed_ratio: float,
     representative_twist_deg: float | None = None,
+    airfoil_stall_risk: bool = False,
+    airfoil_efficiency_factor: float | None = None,
 ) -> tuple[str, ...]:
     """Generate concise next experiments instead of engineering instructions."""
 
@@ -52,6 +54,10 @@ def build_recommendations(
         notes.append("The estimated tip speed is high; compare a higher blade count.")
     if inputs.blade_mass_kg / inputs.rotor_radius_m > 10.0:
         notes.append("Compare a lighter blade while keeping its geometry unchanged.")
+    if airfoil_stall_risk:
+        notes.append("Reduce pitch or local twist; the selected airfoil is likely stalling.")
+    elif airfoil_efficiency_factor is not None and airfoil_efficiency_factor < 0.80:
+        notes.append("Try a cambered or high-lift airfoil shape and compare the mW score.")
     if not notes:
         notes.append(
             "This is a balanced baseline. Change one variable at a time and record the result."
