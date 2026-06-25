@@ -27,6 +27,12 @@ blade geometry, mass, and material affect estimated turbine performance.
 This project is designed to run on each user's own computer. You do not need
 cloud hosting, Streamlit Cloud, or any paid service for local classroom use.
 
+### Beginner PDF manual
+
+For first-time users who are not familiar with code, use the complete
+[Windows and macOS installation manual](output/pdf/Wind_Turbine_Design_Lab_Local_Installation_Guide.pdf).
+It includes step-by-step setup, first run, updates, and troubleshooting.
+
 ### 1. Install requirements
 
 Install:
