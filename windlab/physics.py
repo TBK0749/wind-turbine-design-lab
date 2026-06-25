@@ -50,6 +50,7 @@ def estimate_cp(
     pitch_angle_deg: float,
     twist_angle_deg: float,
     roughness_factor: float,
+    mean_chord_m: float | None = None,
 ) -> float:
     """Estimate a stable Cp for classroom comparison.
 
@@ -60,7 +61,8 @@ def estimate_cp(
     tsr_factor = exp(-(((tip_speed_ratio - 7.0) / 3.8) ** 2))
     pitch_factor = exp(-(((pitch_angle_deg - 4.0) / 12.0) ** 2))
     twist_factor = exp(-(((twist_angle_deg - 12.0) / 22.0) ** 2))
-    solidity = blade_count * (root_chord_m + tip_chord_m) / (2.0 * pi * rotor_radius_m)
+    representative_chord = mean_chord_m or (root_chord_m + tip_chord_m) / 2.0
+    solidity = blade_count * representative_chord / (pi * rotor_radius_m)
     solidity_factor = exp(-(((solidity - 0.09) / 0.10) ** 2))
 
     cp = (

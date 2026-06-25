@@ -11,9 +11,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from app.components.blade_geometry import render_blade_geometry  # noqa: E402
 from app.components.charts import render_performance_charts  # noqa: E402
 from app.components.input_panel import render_input_panel  # noqa: E402
-from app.components.result_cards import render_result_cards  # noqa: E402
+from app.components.result_cards import (  # noqa: E402
+    render_competition_cards,
+    render_result_cards,
+)
 from windlab.simulator import (  # noqa: E402
     performance_curve,
     result_as_csv,
@@ -39,6 +43,15 @@ except (ValidationError, ValueError) as error:
     st.stop()
 
 render_result_cards(simulation_result)
+
+render_blade_geometry(simulation_input)
+
+st.subheader("Competition result")
+render_competition_cards(simulation_result)
+st.caption(
+    "Estimated score at the external load. Electrical power (mW) = load voltage (V) "
+    "× load current (mA)."
+)
 
 for warning in simulation_result.warnings:
     st.warning(warning)
@@ -74,5 +87,8 @@ with st.expander("Model details"):
     st.write(
         "Available wind power is calculated as ½ρAV³. Mechanical power is Cp times "
         "available power. RPM is estimated from tip-speed ratio, and torque is power "
-        "divided by angular speed. Cp and TSR are bounded educational approximations."
+        "divided by angular speed. Generator voltage scales with RPM; current is estimated "
+        "from generator and load resistance. Electrical output cannot exceed the available "
+        "mechanical power after generator efficiency. Cp and TSR remain educational "
+        "approximations."
     )

@@ -1,0 +1,14 @@
+from pathlib import Path
+
+from streamlit.testing.v1 import AppTest
+
+
+def test_streamlit_app_renders_competition_result() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    assert not app.exception
+    assert any(metric.label == "Competition power" for metric in app.metric)
+    assert any(section.value == "Blade geometry table" for section in app.subheader)
+    assert any(section.value == "Blade build preview" for section in app.subheader)
+    assert any(section.value == "Competition result" for section in app.subheader)

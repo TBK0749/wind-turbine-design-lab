@@ -32,15 +32,19 @@ def build_recommendations(
     inputs: SimulationInput,
     cp: float,
     tip_speed_ratio: float,
+    representative_twist_deg: float | None = None,
 ) -> tuple[str, ...]:
     """Generate concise next experiments instead of engineering instructions."""
 
     notes: list[str] = []
     if cp < 0.30:
         notes.append("Try pitch angles nearer 2-8° and compare the resulting Cp.")
-    if inputs.twist_angle_deg < 6.0:
+    twist = (
+        representative_twist_deg if representative_twist_deg is not None else inputs.twist_angle_deg
+    )
+    if twist < 6.0:
         notes.append("Test more blade twist; moderate twist may improve the educational model.")
-    elif inputs.twist_angle_deg > 25.0:
+    elif twist > 25.0:
         notes.append("Test less blade twist to see whether efficiency improves.")
     if tip_speed_ratio < 4.0:
         notes.append("The rotor is relatively slow; compare fewer blades or lower blade mass.")

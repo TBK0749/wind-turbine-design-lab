@@ -9,8 +9,9 @@ def render_performance_charts(rows: list[dict[str, float]]) -> None:
     """Render power, RPM, and torque against wind speed."""
 
     frame = pd.DataFrame(rows)
-    tabs = st.tabs(["Power", "RPM", "Torque"])
+    tabs = st.tabs(["Electrical mW", "Mechanical power", "RPM", "Torque"])
     charts = (
+        ("Electrical power (mW)", "Competition electrical power"),
         ("Power (W)", "Mechanical power"),
         ("RPM", "Rotor speed"),
         ("Torque (N·m)", "Torque"),

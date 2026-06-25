@@ -1,9 +1,44 @@
 """Sidebar controls for simulation inputs."""
 
+import pandas as pd
 import streamlit as st
 
+from windlab.blade_geometry import competition_50cm_sections
 from windlab.materials import MATERIALS
-from windlab.models import SimulationInput
+from windlab.models import BladeSection, SimulationInput
+
+
+def _competition_section_frame() -> pd.DataFrame:
+    """Build an editable centimetre-based table for the supplied blade."""
+
+    sections = competition_50cm_sections()
+    labels = ["1 (Root)", "2", "3", "4", "5", "6 (Tip)"]
+    return pd.DataFrame(
+        {
+            "Section": labels,
+            "Position (cm)": [section.position_m * 100.0 for section in sections],
+            "Chord (cm)": [section.chord_m * 100.0 for section in sections],
+            "Twist (deg)": [section.twist_angle_deg for section in sections],
+        }
+    )
+
+
+def _sections_from_frame(frame: pd.DataFrame) -> tuple[BladeSection, ...]:
+    """Convert complete editable rows from centimetres to SI units."""
+
+    sections: list[BladeSection] = []
+    for _, row in frame.iterrows():
+        values = (row.get("Position (cm)"), row.get("Chord (cm)"), row.get("Twist (deg)"))
+        if any(pd.isna(value) for value in values):
+            continue
+        sections.append(
+            BladeSection(
+                position_m=float(values[0]) / 100.0,
+                chord_m=float(values[1]) / 100.0,
+                twist_angle_deg=float(values[2]),
+            )
+        )
+    return tuple(sorted(sections, key=lambda section: section.position_m))
 
 
 def render_input_panel() -> SimulationInput:
@@ -15,19 +50,76 @@ def render_input_panel() -> SimulationInput:
         air_density = st.number_input("Air density (kg/m³)", 0.5, 1.5, 1.225, 0.005)
 
     with st.sidebar.expander("Rotor", expanded=True):
-        rotor_radius = st.number_input("Rotor radius (m)", 0.06, 100.0, 1.0, 0.05)
-        hub_radius = st.number_input("Hub radius (m)", 0.0, 20.0, 0.1, 0.01)
+        rotor_radius = st.number_input("Blade length / rotor radius (m)", 0.06, 100.0, 0.5, 0.05)
+        hub_radius = st.number_input("Hub radius (m)", 0.0, 20.0, 0.05, 0.01)
         blade_count = st.slider("Number of blades", 1, 12, 3)
 
-    with st.sidebar.expander("Blade geometry", expanded=True):
+    geometry_mode = st.sidebar.radio(
+        "Blade geometry input",
+        ["Section table", "Simple root/tip"],
+        help="Use the section table when the blade is measured at several positions.",
+    )
+
+    pitch = st.sidebar.slider(
+        "Whole-blade pitch angle (°)",
+        -10.0,
+        35.0,
+        0.0,
+        0.5,
+        help="Pitch rotates the whole blade. Local twist is entered separately per section.",
+    )
+
+    blade_sections: tuple[BladeSection, ...] = ()
+    if geometry_mode == "Section table":
+        st.subheader("Blade geometry table")
+        st.caption(
+            "Enter the measurements used to build one blade. Position and chord are in "
+            "centimetres; the simulator converts them to metres."
+        )
+        section_frame = st.data_editor(
+            _competition_section_frame(),
+            key="blade_section_editor",
+            hide_index=True,
+            num_rows="dynamic",
+            width="stretch",
+            column_config={
+                "Section": st.column_config.TextColumn("Section", disabled=True),
+                "Position (cm)": st.column_config.NumberColumn(
+                    "Position (cm)", min_value=0.1, step=1.0, format="%.1f"
+                ),
+                "Chord (cm)": st.column_config.NumberColumn(
+                    "Chord (cm)", min_value=0.1, step=0.1, format="%.1f"
+                ),
+                "Twist (deg)": st.column_config.NumberColumn(
+                    "Twist (deg)", min_value=-20.0, max_value=60.0, step=1.0, format="%.1f"
+                ),
+            },
+        )
+        blade_sections = _sections_from_frame(section_frame)
+        root_chord = blade_sections[0].chord_m if blade_sections else 0.09
+        tip_chord = blade_sections[-1].chord_m if blade_sections else 0.02
+        twist = blade_sections[0].twist_angle_deg if blade_sections else 20.0
+    else:
+        st.subheader("Simple blade geometry")
         root_chord = st.number_input("Root chord (m)", 0.01, 10.0, 0.18, 0.01)
         tip_chord = st.number_input("Tip chord (m)", 0.005, 10.0, 0.08, 0.005)
-        pitch = st.slider("Pitch angle (°)", -10.0, 35.0, 4.0, 0.5)
         twist = st.slider("Twist angle (°)", 0.0, 45.0, 12.0, 0.5)
 
     with st.sidebar.expander("Blade physical", expanded=True):
         blade_mass = st.number_input("Mass per blade (kg)", 0.01, 10000.0, 1.0, 0.1)
         material = st.selectbox("Material", list(MATERIALS))
+
+    with st.sidebar.expander("Competition generator", expanded=True):
+        volts_per_1000_rpm = st.number_input(
+            "Generator voltage (V per 1,000 RPM)", 0.01, 100.0, 1.5, 0.1
+        )
+        internal_resistance = st.number_input(
+            "Generator internal resistance (Ω)", 0.0, 10000.0, 20.0, 1.0
+        )
+        load_resistance = st.number_input("Competition load (Ω)", 0.01, 1000000.0, 100.0, 1.0)
+        generator_efficiency = st.slider("Generator efficiency (%)", 1.0, 100.0, 70.0, 1.0)
+        gear_ratio = st.number_input("Gear ratio (generator ÷ rotor)", 0.01, 100.0, 1.0, 0.1)
+        trial_duration = st.number_input("Trial duration (seconds)", 0.1, 86400.0, 60.0, 1.0)
 
     return SimulationInput(
         wind_speed_m_s=wind_speed,
@@ -39,6 +131,13 @@ def render_input_panel() -> SimulationInput:
         tip_chord_m=tip_chord,
         pitch_angle_deg=pitch,
         twist_angle_deg=twist,
+        blade_sections=blade_sections,
         blade_mass_kg=blade_mass,
         material=material,
+        generator_volts_per_1000_rpm=volts_per_1000_rpm,
+        generator_internal_resistance_ohm=internal_resistance,
+        load_resistance_ohm=load_resistance,
+        generator_efficiency_percent=generator_efficiency,
+        gear_ratio=gear_ratio,
+        trial_duration_s=trial_duration,
     )

@@ -1,15 +1,23 @@
 [
   {
-    "name": "Three-blade classroom baseline",
+    "name": "Three-blade 50 cm competition baseline",
     "wind_speed_m_s": 8.0,
     "air_density_kg_m3": 1.225,
-    "rotor_radius_m": 1.0,
-    "hub_radius_m": 0.1,
+    "rotor_radius_m": 0.5,
+    "hub_radius_m": 0.05,
     "blade_count": 3,
-    "root_chord_m": 0.18,
-    "tip_chord_m": 0.08,
-    "pitch_angle_deg": 4.0,
-    "twist_angle_deg": 12.0,
+    "root_chord_m": 0.09,
+    "tip_chord_m": 0.02,
+    "pitch_angle_deg": 0.0,
+    "twist_angle_deg": 20.0,
+    "blade_sections": [
+      {"position_m": 0.05, "chord_m": 0.09, "twist_angle_deg": 20.0},
+      {"position_m": 0.15, "chord_m": 0.075, "twist_angle_deg": 14.0},
+      {"position_m": 0.25, "chord_m": 0.055, "twist_angle_deg": 9.0},
+      {"position_m": 0.35, "chord_m": 0.04, "twist_angle_deg": 5.0},
+      {"position_m": 0.45, "chord_m": 0.028, "twist_angle_deg": 2.0},
+      {"position_m": 0.5, "chord_m": 0.02, "twist_angle_deg": 0.0}
+    ],
     "blade_mass_kg": 1.0,
     "material": "Wood"
   }

@@ -19,3 +19,21 @@ def render_result_cards(result: SimulationResult) -> None:
     second[1].metric("Tip-speed ratio", f"{result.tip_speed_ratio:.2f}")
     second[2].metric("Efficiency", f"{result.efficiency_percent:.1f}%")
     second[3].metric("Rotor area", f"{result.rotor_area_m2:.2f} m²")
+
+
+def render_competition_cards(result: SimulationResult) -> None:
+    """Display the estimated electrical score and measurement values."""
+
+    first = st.columns(4)
+    first[0].metric("Competition power", f"{result.electrical_power_mw:,.2f} mW")
+    first[1].metric("Load voltage", f"{result.load_voltage_v:,.3f} V")
+    first[2].metric("Load current", f"{result.load_current_ma:,.3f} mA")
+    first[3].metric("Trial energy", f"{result.electrical_energy_mj:,.1f} mJ")
+
+    second = st.columns(3)
+    second[0].metric("Generator RPM", f"{result.generator_rpm:,.1f}")
+    second[1].metric("Open-circuit voltage", f"{result.open_circuit_voltage_v:,.3f} V")
+    second[2].metric(
+        "Mechanical → load",
+        f"{result.conversion_efficiency_percent:,.2f}%",
+    )

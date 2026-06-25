@@ -10,9 +10,13 @@ blade geometry, mass, and material affect estimated turbine performance.
 ## MVP features
 
 - Configure wind, rotor, blade geometry, mass, and material.
+- Design a blade with editable radial Position, Chord, and Twist stations.
+- Preview the cutting outline and chord/twist distribution for fabrication.
 - Estimate RPM, torque, mechanical power, Cp, tip-speed ratio, and efficiency.
 - Review a student-friendly design score and recommendations.
 - Plot RPM, torque, and power across a wind-speed range.
+- Estimate competition voltage, current, electrical power in mW, and trial energy.
+- Configure generator voltage constant, resistance, load, efficiency, gearing, and time.
 - Download the current result as CSV or JSON.
 - Run completely on the user's computer.
 
