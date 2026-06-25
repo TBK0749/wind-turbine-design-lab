@@ -84,6 +84,34 @@ def render_quick_start_guide() -> None:
 """
     )
 
+    st.subheader("Updating to the latest version")
+    st.write(
+        "Users who cloned the repository with Git can update the existing "
+        "installation without downloading the whole project again."
+    )
+
+    st.markdown(
+        """
+1. Stop the running app with `Ctrl + C`.
+2. Open a terminal in the `wind-turbine-design-lab` project folder.
+3. Download the latest code, synchronize dependencies, and restart:
+
+   ```bash
+   git pull
+   uv sync
+   uv run streamlit run app/main.py
+   ```
+
+`git pull` downloads the latest project files. `uv sync` installs or updates
+the dependencies required by that version.
+
+If the project was downloaded as a ZIP file, `git pull` is not available.
+Download the latest ZIP and replace the old project folder, or clone with Git
+next time for easier updates. Save exported CSV, JSON, and experiment files
+outside the project folder before replacing it.
+"""
+    )
+
     st.warning(
         "Do not click Deploy for local classroom use. The app runs on your computer, "
         "and no cloud service is required.",

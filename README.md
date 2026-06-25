@@ -86,10 +86,31 @@ Return to the terminal that is running Streamlit and press:
 Ctrl + C
 ```
 
+## Updating to the latest version
+
+If you originally installed the project with Git, you do not need to clone it
+again. Stop the app, open a terminal in the project folder, and run:
+
+```bash
+git pull
+uv sync
+uv run streamlit run app/main.py
+```
+
+`git pull` downloads the latest project files, while `uv sync` installs or
+updates any required dependencies.
+
+If you downloaded the project as a ZIP file, `git pull` is not available.
+Download the latest ZIP from GitHub and replace the old project folder, or use
+the Git installation method next time for easier updates. Keep exported CSV,
+JSON, and experiment files outside the project folder before replacing it.
+
 ### Common local issues
 
 - If Streamlit asks for an email address, press `Enter` without typing anything.
 - If port `8501` is busy, stop the old Streamlit terminal with `Ctrl + C`, then run again.
+- If `git pull` reports local changes, save your exported work outside the
+  project folder and avoid editing the project source files.
 - Do not click Deploy. This project is meant to run locally unless your teacher
   explicitly asks you to publish it online.
 

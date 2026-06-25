@@ -12,6 +12,8 @@ def test_readme_contains_local_installation_guide() -> None:
     readme = Path("README.md").read_text()
 
     assert "## Local installation guide" in readme
+    assert "## Updating to the latest version" in readme
     assert "Download as ZIP" in readme
+    assert "git pull" in readme
     assert "Run the app locally" in readme
     assert "Do not click Deploy" in readme
