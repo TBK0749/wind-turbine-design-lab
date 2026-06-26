@@ -103,14 +103,14 @@ with design_tab:
     with st.expander("Model details"):
         st.write(
             "Available wind power is calculated as ½ρAV³. Mechanical power is Cp times "
-            "available power. RPM is estimated from tip-speed ratio, and torque is power "
-            "divided by angular speed. Section-table mode can assign a different airfoil "
-            "to each blade station; the model blends root, mid-span, and tip airfoil "
-            "effects with a simplified lift/drag family model. "
+            "available power in simple geometry mode. In section-table mode, the default "
+            "BEMT-lite model sums lift and drag forces along blade segments using local "
+            "radius, chord, twist, airfoil family, and relative wind speed. RPM is estimated "
+            "from tip-speed ratio, and torque is power divided by angular speed. "
             "Generator voltage scales with RPM; current is estimated from generator and "
             "load resistance. Electrical output cannot exceed the available mechanical "
             "power after generator efficiency. Cp, TSR, and airfoil values remain "
-            "educational approximations."
+            "educational approximations, not a replacement for full QBlade/BEMT validation."
         )
 
 with guide_tab:

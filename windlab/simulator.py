@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 
 from windlab.airfoils import estimate_airfoil_performance
+from windlab.bemt import calculate_bemt_lite
 from windlab.blade_geometry import estimate_blade_planform_area, summarize_blade_geometry
 from windlab.generator import simulate_generator
 from windlab.materials import get_material
@@ -200,6 +201,7 @@ def has_custom_calibration(inputs: SimulationInput) -> bool:
             not inputs.use_practical_cp_limit,
             not inputs.use_reynolds_correction,
             not inputs.use_startup_torque_loss,
+            not inputs.use_bemt_lite_section_model,
         )
     )
 
@@ -285,6 +287,31 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
     omega = angular_speed(tsr, inputs.wind_speed_m_s, inputs.rotor_radius_m)
     rpm = rpm_from_angular_speed(omega)
     torque = torque_from_power(mechanical_power, omega)
+    model_mode = "Empirical Cp"
+    bemt_section_count = 0
+    bemt_mean_relative_wind_speed = 0.0
+    bemt_mean_angle_of_attack = angle_of_attack
+    bemt_warnings: tuple[str, ...] = ()
+
+    if inputs.blade_sections and inputs.use_bemt_lite_section_model:
+        bemt = calculate_bemt_lite(
+            inputs,
+            tip_speed_ratio=tsr,
+            material_roughness_factor=material_roughness,
+            airfoil_efficiency_multiplier=inputs.airfoil_efficiency_multiplier,
+            use_airfoil_correction=inputs.use_airfoil_correction,
+            use_reynolds_correction=inputs.use_reynolds_correction,
+            practical_cp_limit=inputs.practical_cp_limit,
+            use_practical_cp_limit=inputs.use_practical_cp_limit,
+        )
+        mechanical_power = bemt.mechanical_power_w
+        torque = bemt.torque_n_m
+        cp = bemt.cp
+        model_mode = "BEMT-lite"
+        bemt_section_count = bemt.section_count
+        bemt_mean_relative_wind_speed = bemt.mean_relative_wind_speed_m_s
+        bemt_mean_angle_of_attack = bemt.mean_angle_of_attack_deg
+        bemt_warnings = bemt.warnings
 
     warnings: list[str] = []
     if inputs.use_startup_torque_loss and torque < inputs.startup_torque_n_m:
@@ -322,6 +349,7 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
     if inputs.rotor_radius_m > 10.0:
         warnings.append("Large rotor: simplified assumptions become increasingly unrealistic.")
     warnings.extend(airfoil.warnings)
+    warnings.extend(bemt_warnings)
 
     return SimulationResult(
         rotor_area_m2=round(area, 4),
@@ -335,6 +363,10 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         effective_blade_mass_kg=round(effective_blade_mass, 4),
         blade_planform_area_m2=round(blade_planform_area, 4),
         material_density_kg_m3=round(material_density, 2),
+        model_mode=model_mode,
+        bemt_section_count=bemt_section_count,
+        bemt_mean_relative_wind_speed_m_s=round(bemt_mean_relative_wind_speed, 3),
+        bemt_mean_angle_of_attack_deg=round(bemt_mean_angle_of_attack, 3),
         design_score=design_score(
             inputs=inputs.model_copy(update={"blade_mass_kg": effective_blade_mass}),
             cp=cp,

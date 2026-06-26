@@ -21,6 +21,14 @@ def render_result_cards(result: SimulationResult) -> None:
     second[3].metric("Rotor area", f"{result.rotor_area_m2:.2f} m²")
     second[4].metric("Blade mass", f"{result.effective_blade_mass_kg:.3f} kg")
 
+    third = st.columns(3)
+    third[0].metric("Model mode", result.model_mode)
+    third[1].metric("BEMT sections", f"{result.bemt_section_count}")
+    third[2].metric(
+        "Mean relative wind",
+        f"{result.bemt_mean_relative_wind_speed_m_s:,.2f} m/s",
+    )
+
 
 def render_competition_cards(result: SimulationResult) -> None:
     """Display the estimated electrical score and measurement values."""

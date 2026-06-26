@@ -132,9 +132,12 @@ uv run ruff format --check .
 
 ## Current physics scope
 
-Version 0.1 uses wind power, swept area, an educational bounded Cp
-approximation, and an estimated tip-speed ratio. See
-`docs/physics_model.md` for assumptions and limitations.
+The simulator uses wind power, swept area, an estimated tip-speed ratio, and
+two classroom model paths. Simple root/tip geometry uses an educational bounded
+Cp approximation. Section-table geometry uses a BEMT-lite section-force model
+that sums lift and drag along blade segments using local radius, chord, twist,
+airfoil family, and relative wind speed. See `docs/physics_model.md` for
+assumptions and limitations.
 
 The app also includes a collapsed **Advanced calibration** panel for teachers
 and competition teams. It can tune uncertain constants such as air viscosity,
@@ -151,6 +154,6 @@ and blade planform area.
 
 - v0.2.0: save and compare multiple designs
 - v0.3.0: structured experiment log
-- v0.4.0: improved Cp model
+- v0.4.0: calibration from measured wind-tunnel test results
 - v1.0.0: stable classroom release
-- v2.x: Blade Element Momentum Theory (BEMT)
+- v2.x: full iterative Blade Element Momentum Theory (BEMT)

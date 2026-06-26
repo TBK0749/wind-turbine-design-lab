@@ -253,6 +253,7 @@ def render_input_panel() -> SimulationInput:
         use_practical_cp_limit = st.checkbox("Use practical Cp limit", value=True)
         use_reynolds_correction = st.checkbox("Use Reynolds correction", value=True)
         use_startup_torque_loss = st.checkbox("Use startup torque loss", value=True)
+        use_bemt_lite = st.checkbox("Use BEMT-lite section model", value=True)
 
     return SimulationInput(
         wind_speed_m_s=wind_speed,
@@ -292,4 +293,5 @@ def render_input_panel() -> SimulationInput:
         use_practical_cp_limit=use_practical_cp_limit,
         use_reynolds_correction=use_reynolds_correction,
         use_startup_torque_loss=use_startup_torque_loss,
+        use_bemt_lite_section_model=use_bemt_lite,
     )

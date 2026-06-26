@@ -83,3 +83,13 @@ def test_airfoil_help_explains_naca_codes() -> None:
     assert any("Airfoil is the blade cross-section" in text.value for text in app.markdown)
     assert any("4418 = 4% camber" in text.value for text in app.markdown)
     assert any("Best zone" in text.value for text in app.markdown)
+
+
+def test_bemt_lite_model_mode_is_visible() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    assert not app.exception
+    assert any(metric.label == "Model mode" for metric in app.metric)
+    assert any(metric.label == "BEMT sections" for metric in app.metric)
+    assert any("Use BEMT-lite section model" in checkbox.label for checkbox in app.checkbox)

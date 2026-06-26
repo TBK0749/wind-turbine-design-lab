@@ -60,24 +60,37 @@ energy (mJ) = power (mW) × trial duration (seconds)
 
 ## Educational approximations
 
-Version 0.1 accepts either simple root/tip geometry or several measured blade
+The app accepts either simple root/tip geometry or several measured blade
 stations. In sectional mode, each station contains radial position, chord,
-local twist, station airfoil, and the airfoil's role. The current pre-BEMT
-model calculates representative chord and twist values using radial-area
-weighting outside the hub radius, so inner fabrication sections can exist
-inside the hub without crashing the simulation. It then estimates Cp and
-tip-speed ratio from broad trends in blade count, chord, pitch, twist, airfoil,
-and material roughness. Values are smoothly bounded, and Cp is kept below
-practical and Betz limits.
+local twist, station airfoil, and the airfoil's role. The default section-table
+path uses **BEMT-lite**, a simplified blade-section force model. It divides the
+blade into radial segments outside the hub radius, estimates the local relative
+wind speed from free-stream wind plus tangential blade speed, then calculates
+lift and drag from the local chord, twist, and selected airfoil family. Segment
+torques are summed to estimate mechanical power and Cp. Values are smoothly
+bounded, and Cp is kept below practical and Betz limits.
+
+BEMT-lite is closer to standard blade design thinking than a single whole-blade
+Cp estimate because chord, twist, radius, and station airfoil choices can change
+the result section by section. It is still not full QBlade/BEMT. It does not
+iteratively solve axial/tangential induction factors, 3D stall delay, tip-loss
+corrections, wake rotation, turbulence, tower blockage, structural bending, or
+manufacturing error.
+
+Simple root/tip mode still uses an educational bounded Cp approximation and an
+estimated tip-speed ratio. This mode is useful for quick comparison before
+students have measured a full blade table.
 
 The airfoil model is also simplified. In simple root/tip mode, users choose one
 classroom airfoil family: flat plate / foam board, cambered plate, symmetric
 airfoil, or high-lift airfoil. In section-table mode, each station can choose a
 specific airfoil such as NACA 4418, NACA 4415, NACA 4412, NACA 2412, NACA 0012,
 Clark Y, Selig S1223, or Flat plate. The simulator maps each named airfoil to
-one of the educational airfoil families, then blends all station airfoils with
-radial/chord weighting. Root sections retain a small startup/strength influence,
-mid-span sections dominate lift, and tip sections receive extra RPM/drag weight.
+one of the educational airfoil families. In BEMT-lite mode, that family is used
+directly at each blade segment. If BEMT-lite is disabled, the simulator falls
+back to a representative whole-blade airfoil blend with radial/chord weighting.
+Root sections retain a small startup/strength influence, mid-span sections
+dominate lift, and tip sections receive extra RPM/drag weight.
 The dashboard includes an **Airfoil Help** panel that decodes four-digit NACA
 names, for example `4418 = 4% camber, 40% camber position, 18% thickness`.
 The simulator estimates a representative angle of attack:
@@ -117,6 +130,9 @@ Manual constants:
 Model toggles:
 
 - Hub area loss: when disabled, swept area uses the full rotor disk.
+- BEMT-lite section model: when enabled, section-table geometry calculates
+  torque by summing local lift/drag forces along the blade. When disabled, the
+  simulator falls back to the simpler representative Cp model.
 - Airfoil correction: when disabled, airfoil efficiency is treated as 1.0.
 - Material roughness: when disabled, material roughness is treated as 1.0.
 - Generator power cap: when disabled, the resistive-load electrical estimate is

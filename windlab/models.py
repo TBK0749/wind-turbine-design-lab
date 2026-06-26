@@ -68,6 +68,7 @@ class SimulationInput(BaseModel):
     use_practical_cp_limit: bool = True
     use_reynolds_correction: bool = True
     use_startup_torque_loss: bool = True
+    use_bemt_lite_section_model: bool = True
 
     @model_validator(mode="after")
     def validate_geometry(self) -> "SimulationInput":
@@ -106,6 +107,10 @@ class SimulationResult(BaseModel):
     effective_blade_mass_kg: float
     blade_planform_area_m2: float
     material_density_kg_m3: float
+    model_mode: str
+    bemt_section_count: int
+    bemt_mean_relative_wind_speed_m_s: float
+    bemt_mean_angle_of_attack_deg: float
     design_score: float
     generator_rpm: float
     open_circuit_voltage_v: float

@@ -257,9 +257,16 @@ def render_key_terms_glossary() -> None:
             "efficiency, hub-area loss, Reynolds correction, or generator power capping.",
         ),
         (
-            "BEMT",
-            "Blade Element Momentum Theory. A higher-fidelity method that calculates forces "
-            "at many blade stations. This dashboard is not full BEMT yet.",
+            "BEMT-lite",
+            "A simplified Blade Element Momentum Theory style model. It calculates lift "
+            "and drag at blade sections using local chord, twist, airfoil, and relative "
+            "wind speed, but it does not solve full induction factors like QBlade.",
+        ),
+        (
+            "Full BEMT",
+            "A higher-fidelity Blade Element Momentum Theory method that iteratively solves "
+            "how the rotor slows and twists the airflow. QBlade uses much more advanced "
+            "aerodynamic modeling than this classroom dashboard.",
         ),
     ]
 
