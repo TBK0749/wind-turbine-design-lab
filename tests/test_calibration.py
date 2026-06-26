@@ -58,6 +58,30 @@ def test_custom_material_roughness_changes_cp() -> None:
     assert rough.cp < smooth.cp
 
 
+def test_surface_finish_changes_competition_power() -> None:
+    raw_print = simulate(SimulationInput(surface_finish="Raw 3D print"))
+    smooth = simulate(SimulationInput(surface_finish="Smooth molded"))
+
+    assert smooth.cp > raw_print.cp
+    assert smooth.electrical_power_mw > raw_print.electrical_power_mw
+
+
+def test_heavy_blade_mass_reduces_spinup_and_power() -> None:
+    light = simulate(SimulationInput(blade_mass_kg=0.10, rotor_radius_m=0.45))
+    heavy = simulate(SimulationInput(blade_mass_kg=3.00, rotor_radius_m=0.45))
+
+    assert heavy.rotor_inertia_kg_m2 > light.rotor_inertia_kg_m2
+    assert heavy.spinup_factor_percent < light.spinup_factor_percent
+    assert heavy.electrical_power_mw < light.electrical_power_mw
+
+
+def test_blade_mass_can_raise_required_startup_torque() -> None:
+    light = simulate(SimulationInput(blade_mass_kg=0.10, rotor_radius_m=0.45))
+    heavy = simulate(SimulationInput(blade_mass_kg=3.00, rotor_radius_m=0.45))
+
+    assert heavy.required_startup_torque_n_m > light.required_startup_torque_n_m
+
+
 def test_estimated_blade_mass_uses_density_and_thickness() -> None:
     light = simulate(
         SimulationInput(

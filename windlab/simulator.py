@@ -5,12 +5,13 @@ import io
 import json
 from collections.abc import Iterable
 from dataclasses import dataclass
+from math import exp
 
 from windlab.airfoils import estimate_airfoil_performance
 from windlab.bemt import calculate_bemt_lite
 from windlab.blade_geometry import estimate_blade_planform_area, summarize_blade_geometry
 from windlab.generator import simulate_generator
-from windlab.materials import get_material
+from windlab.materials import get_material, get_surface_finish
 from windlab.models import SimulationInput, SimulationResult
 from windlab.physics import (
     angular_speed,
@@ -25,6 +26,7 @@ from windlab.scoring import build_recommendations, design_score
 from windlab.section_airfoils import get_section_airfoil
 
 DEFAULT_AIR_DYNAMIC_VISCOSITY_KG_M_S = 1.81e-5
+DEFAULT_SURFACE_FINISH = "Raw 3D print"
 
 
 @dataclass(frozen=True, slots=True)
@@ -192,6 +194,7 @@ def has_custom_calibration(inputs: SimulationInput) -> bool:
             inputs.airfoil_efficiency_multiplier != 1.0,
             inputs.mechanical_loss_percent != 0.0,
             inputs.startup_torque_n_m != 0.0,
+            inputs.surface_finish != DEFAULT_SURFACE_FINISH,
             inputs.use_custom_material_properties,
             inputs.use_estimated_blade_mass,
             not inputs.use_hub_area_loss,
@@ -206,10 +209,56 @@ def has_custom_calibration(inputs: SimulationInput) -> bool:
     )
 
 
+def estimate_rotor_inertia_kg_m2(inputs: SimulationInput, blade_mass_kg: float) -> float:
+    """Estimate rotor inertia from blade mass and radius.
+
+    This treats each blade as a tapered classroom blade distributed from hub to
+    tip. It is intentionally approximate, but it makes heavy 3D-printed blades
+    slower to reach useful RPM during a timed competition run.
+    """
+
+    radial_mass_factor = (
+        inputs.rotor_radius_m**2
+        + inputs.rotor_radius_m * inputs.hub_radius_m
+        + inputs.hub_radius_m**2
+    ) / 3.0
+    return inputs.blade_count * blade_mass_kg * radial_mass_factor
+
+
+def estimate_required_startup_torque_n_m(
+    inputs: SimulationInput,
+    blade_mass_kg: float,
+    rotor_inertia_kg_m2: float,
+) -> float:
+    """Estimate torque that must be exceeded before useful rotation begins."""
+
+    mass_friction_torque = blade_mass_kg * inputs.blade_count * inputs.rotor_radius_m * 0.004
+    inertia_breakaway_torque = rotor_inertia_kg_m2 * 0.015
+    return inputs.startup_torque_n_m + mass_friction_torque + inertia_breakaway_torque
+
+
+def estimate_spinup_factor(
+    *,
+    rotor_inertia_kg_m2: float,
+    target_angular_speed_rad_s: float,
+    torque_n_m: float,
+    trial_duration_s: float,
+) -> float:
+    """Estimate how much of steady-state RPM/power is reached during the trial."""
+
+    if torque_n_m <= 0.0 or target_angular_speed_rad_s <= 0.0:
+        return 0.0
+    time_constant_s = rotor_inertia_kg_m2 * target_angular_speed_rad_s / max(torque_n_m, 1e-6)
+    if time_constant_s <= 0.0:
+        return 1.0
+    return max(0.0, min(1.0, 1.0 - exp(-trial_duration_s / time_constant_s)))
+
+
 def simulate(inputs: SimulationInput) -> SimulationResult:
     """Run one deterministic educational simulation."""
 
     material = get_material(inputs.material)
+    surface_finish = get_surface_finish(inputs.surface_finish)
     material_density = (
         inputs.custom_material_density_kg_m3
         if inputs.use_custom_material_properties
@@ -261,15 +310,23 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         else 1.0
     )
     effective_airfoil_efficiency = max(0.1, min(2.0, effective_airfoil_efficiency))
-    tsr = adjust_tip_speed_ratio_for_airfoil(
-        estimate_tip_speed_ratio(
-            inputs.blade_count,
-            inputs.pitch_angle_deg,
-            geometry.representative_twist_deg,
-        ),
-        effective_airfoil_efficiency,
+    material_roughness = (
+        material_roughness_default * surface_finish.drag_factor
+        if inputs.use_material_roughness
+        else 1.0
     )
-    material_roughness = material_roughness_default if inputs.use_material_roughness else 1.0
+    surface_speed_factor = max(0.55, min(1.05, material_roughness**0.65))
+    tsr = (
+        adjust_tip_speed_ratio_for_airfoil(
+            estimate_tip_speed_ratio(
+                inputs.blade_count,
+                inputs.pitch_angle_deg,
+                geometry.representative_twist_deg,
+            ),
+            effective_airfoil_efficiency,
+        )
+        * surface_speed_factor
+    )
     cp = estimate_cp(
         tip_speed_ratio=tsr,
         blade_count=inputs.blade_count,
@@ -304,27 +361,58 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
             practical_cp_limit=inputs.practical_cp_limit,
             use_practical_cp_limit=inputs.use_practical_cp_limit,
         )
-        mechanical_power = bemt.mechanical_power_w
-        torque = bemt.torque_n_m
-        cp = bemt.cp
+        section_airfoil_drive_factor = max(0.65, min(1.0, effective_airfoil_efficiency))
+        mechanical_power = bemt.mechanical_power_w * section_airfoil_drive_factor
+        torque = bemt.torque_n_m * section_airfoil_drive_factor
+        cp = bemt.cp * section_airfoil_drive_factor
         model_mode = "BEMT-lite"
         bemt_section_count = bemt.section_count
         bemt_mean_relative_wind_speed = bemt.mean_relative_wind_speed_m_s
         bemt_mean_angle_of_attack = bemt.mean_angle_of_attack_deg
         bemt_warnings = bemt.warnings
 
+    rotor_inertia = estimate_rotor_inertia_kg_m2(inputs, effective_blade_mass)
+    required_startup_torque = estimate_required_startup_torque_n_m(
+        inputs,
+        effective_blade_mass,
+        rotor_inertia,
+    )
+    spinup_factor = 1.0
     warnings: list[str] = []
-    if inputs.use_startup_torque_loss and torque < inputs.startup_torque_n_m:
+    if inputs.use_startup_torque_loss and torque < required_startup_torque:
         mechanical_power = 0.0
+        cp = 0.0
         omega = 0.0
         rpm = 0.0
         torque = 0.0
+        spinup_factor = 0.0
         warnings.append(
-            "Startup torque loss: estimated torque is below the configured startup torque."
+            "Startup torque loss: estimated torque is below the required startup torque "
+            "from the generator and blade mass."
         )
-    elif inputs.mechanical_loss_percent > 0.0:
+    else:
+        spinup_factor = estimate_spinup_factor(
+            rotor_inertia_kg_m2=rotor_inertia,
+            target_angular_speed_rad_s=omega,
+            torque_n_m=torque,
+            trial_duration_s=inputs.trial_duration_s,
+        )
+        if spinup_factor < 0.995:
+            mechanical_power *= spinup_factor
+            omega *= spinup_factor
+            rpm = rpm_from_angular_speed(omega)
+            torque = torque_from_power(mechanical_power, omega)
+            cp = mechanical_power / wind_power if wind_power > 0.0 else 0.0
+        if 0.0 < spinup_factor < 0.80:
+            warnings.append(
+                "Heavy rotor response: blade mass may prevent the rotor from reaching full "
+                "RPM during the timed run."
+            )
+
+    if inputs.mechanical_loss_percent > 0.0 and mechanical_power > 0.0:
         mechanical_power *= 1.0 - inputs.mechanical_loss_percent / 100.0
         torque = torque_from_power(mechanical_power, omega)
+        cp = mechanical_power / wind_power if wind_power > 0.0 else 0.0
 
     generator = simulate_generator(
         rotor_rpm=rpm,
@@ -367,6 +455,9 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         bemt_section_count=bemt_section_count,
         bemt_mean_relative_wind_speed_m_s=round(bemt_mean_relative_wind_speed, 3),
         bemt_mean_angle_of_attack_deg=round(bemt_mean_angle_of_attack, 3),
+        rotor_inertia_kg_m2=round(rotor_inertia, 5),
+        spinup_factor_percent=round(spinup_factor * 100.0, 2),
+        required_startup_torque_n_m=round(required_startup_torque, 4),
         design_score=design_score(
             inputs=inputs.model_copy(update={"blade_mass_kg": effective_blade_mass}),
             cp=cp,

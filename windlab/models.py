@@ -3,7 +3,7 @@
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from windlab.airfoils import AIRFOIL_LIBRARY
-from windlab.materials import MATERIALS
+from windlab.materials import MATERIALS, SURFACE_FINISHES
 from windlab.section_airfoils import get_section_airfoil
 
 
@@ -44,6 +44,7 @@ class SimulationInput(BaseModel):
     airfoil_type: str = Field("Flat plate / Foam board")
     blade_mass_kg: float = Field(1.0, gt=0.01, le=10000.0)
     material: str = Field("Wood")
+    surface_finish: str = Field("Raw 3D print")
     use_custom_material_properties: bool = False
     custom_material_density_kg_m3: float = Field(650.0, gt=1.0, le=30000.0)
     custom_material_roughness_factor: float = Field(0.94, ge=0.1, le=1.5)
@@ -78,6 +79,8 @@ class SimulationInput(BaseModel):
             raise ValueError("Hub radius must be smaller than rotor radius.")
         if self.material not in MATERIALS:
             raise ValueError(f"Material must be one of: {', '.join(MATERIALS)}.")
+        if self.surface_finish not in SURFACE_FINISHES:
+            raise ValueError(f"Surface finish must be one of: {', '.join(SURFACE_FINISHES)}.")
         if self.airfoil_type not in AIRFOIL_LIBRARY:
             raise ValueError(f"Airfoil must be one of: {', '.join(AIRFOIL_LIBRARY)}.")
         if self.blade_sections:
@@ -111,6 +114,9 @@ class SimulationResult(BaseModel):
     bemt_section_count: int
     bemt_mean_relative_wind_speed_m_s: float
     bemt_mean_angle_of_attack_deg: float
+    rotor_inertia_kg_m2: float
+    spinup_factor_percent: float
+    required_startup_torque_n_m: float
     design_score: float
     generator_rpm: float
     open_circuit_voltage_v: float

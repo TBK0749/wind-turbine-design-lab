@@ -5,7 +5,7 @@ import streamlit as st
 
 from windlab.airfoils import AIRFOIL_LIBRARY
 from windlab.blade_geometry import competition_50cm_sections
-from windlab.materials import MATERIALS
+from windlab.materials import MATERIALS, SURFACE_FINISHES
 from windlab.models import BladeSection, SimulationInput
 from windlab.section_airfoils import get_section_airfoil, section_airfoil_options
 
@@ -169,6 +169,8 @@ def render_input_panel() -> SimulationInput:
             f"Preset density: {selected_material.density_kg_m3:,.0f} kg/m³ · "
             f"roughness: {selected_material.roughness_factor:.2f}"
         )
+        surface_finish = st.selectbox("Surface finish", list(SURFACE_FINISHES))
+        st.caption(SURFACE_FINISHES[surface_finish].description)
         use_custom_material_properties = st.checkbox(
             "Use custom material properties",
             value=False,
@@ -269,6 +271,7 @@ def render_input_panel() -> SimulationInput:
         airfoil_type=airfoil_type,
         blade_mass_kg=blade_mass,
         material=material,
+        surface_finish=surface_finish,
         use_custom_material_properties=use_custom_material_properties,
         custom_material_density_kg_m3=custom_material_density,
         custom_material_roughness_factor=custom_material_roughness,

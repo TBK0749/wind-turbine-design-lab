@@ -50,6 +50,7 @@ def test_custom_material_controls_are_available() -> None:
     assert any("Use custom material properties" in checkbox.label for checkbox in app.checkbox)
     assert any("Estimate blade mass from density" in checkbox.label for checkbox in app.checkbox)
     assert any("Material density" in number.label for number in app.number_input)
+    assert any(selectbox.label == "Surface finish" for selectbox in app.selectbox)
     assert any(metric.label == "Blade mass" for metric in app.metric)
 
 
@@ -92,4 +93,6 @@ def test_bemt_lite_model_mode_is_visible() -> None:
     assert not app.exception
     assert any(metric.label == "Model mode" for metric in app.metric)
     assert any(metric.label == "BEMT sections" for metric in app.metric)
+    assert any(metric.label == "Spin-up factor" for metric in app.metric)
+    assert any(metric.label == "Required start torque" for metric in app.metric)
     assert any("Use BEMT-lite section model" in checkbox.label for checkbox in app.checkbox)

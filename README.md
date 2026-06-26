@@ -148,7 +148,8 @@ comparisons, and record any custom settings with measured test results.
 The **Blade physical** panel supports custom material properties. Users can
 override material density, roughness, and durability, then either enter blade
 mass manually or estimate blade mass from material density, blade thickness,
-and blade planform area.
+and blade planform area. Blade mass affects rotor inertia and timed-run spin-up,
+while surface finish affects aerodynamic drag.
 
 ## Roadmap
 

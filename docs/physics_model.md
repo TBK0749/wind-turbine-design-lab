@@ -150,8 +150,11 @@ because results with different toggles are not directly comparable.
 
 The **Blade physical** panel supports preset materials and custom material
 properties. Presets provide density, surface roughness, and durability values
-for classroom comparison. When **Use custom material properties** is enabled,
-the user can override:
+for classroom comparison. The separate **Surface finish** selector models the
+extra drag from layer lines or rough hand-cut surfaces. Raw 3D prints apply a
+larger drag penalty than sanded, coated, or smooth molded blades.
+
+When **Use custom material properties** is enabled, the user can override:
 
 - Material density in kg/m³.
 - Material roughness factor.
@@ -176,6 +179,26 @@ stations. This is still an educational estimate: it does not include glue,
 fasteners, spars, hubs, leading-edge reinforcement, or actual 3D airfoil volume.
 If the real blade can be weighed, manual mass is usually more reliable.
 
+Blade mass also affects the timed competition estimate. The simulator estimates
+rotor inertia from blade mass and radius:
+
+```text
+Irotor ≈ blade count × blade mass × (R² + R×Rhub + Rhub²) / 3
+```
+
+It then estimates whether the rotor can reach steady-state speed inside the
+configured trial duration:
+
+```text
+spin-up factor = 1 - exp(-trial duration / (Irotor × target ω / torque))
+```
+
+The spin-up factor reduces effective RPM and mechanical power before the
+generator model runs. This makes very heavy 3D-printed blades less competitive
+in short trials, even if their steady-state aerodynamic geometry looks good.
+The model also adds a small blade-mass startup torque allowance before applying
+the generator startup/cogging torque setting.
+
 The supplied 45 cm competition preset uses:
 
 | Position (cm) | Chord (cm) | Twist (deg) | Airfoil | Role |
@@ -188,8 +211,9 @@ The supplied 45 cm competition preset uses:
 | 45 | 1.8 | 0 | NACA 2412 | Thin tip section to reduce tip-vortex drag |
 
 Whole-blade pitch is added to each local twist value for the fabrication
-preview. A later BEMT version will calculate forces independently at each
-station instead of reducing the table to representative values.
+preview. In BEMT-lite mode, forces are calculated along blade segments. If
+BEMT-lite is disabled, the simulator falls back to representative whole-blade
+values for simpler classroom comparison.
 
 The generator model is a simplified DC equivalent. It does not yet solve the
 full two-way effect of electrical loading on rotor RPM, startup torque,

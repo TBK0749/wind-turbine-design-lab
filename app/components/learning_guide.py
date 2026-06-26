@@ -234,7 +234,18 @@ def render_key_terms_glossary() -> None:
         (
             "Estimated blade mass",
             "An optional estimate calculated from blade planform area, blade thickness, and "
-            "material density. Manual mass entry remains available when the blade is weighed.",
+            "material density. Heavier blades increase rotor inertia and may reduce RPM "
+            "during a timed run. Manual mass entry remains available when the blade is weighed.",
+        ),
+        (
+            "Spin-up factor",
+            "An estimate of how close the rotor gets to its steady-state speed during the "
+            "competition time. Heavy blades and short runs lower this value.",
+        ),
+        (
+            "Surface finish",
+            "The smoothness of the blade surface. Raw 3D prints usually add drag from layer "
+            "lines; sanding or coating can improve the simulated mW result.",
         ),
         (
             "Surface roughness factor",
