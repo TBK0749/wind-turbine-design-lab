@@ -30,3 +30,13 @@ def test_streamlit_app_renders_english_guide_and_glossary() -> None:
     assert any("Power coefficient (Cp)" in text.value for text in app.markdown)
     assert any("Tip-speed ratio (TSR)" in text.value for text in app.markdown)
     assert any("Competition power (mW)" in text.value for text in app.markdown)
+
+
+def test_advanced_calibration_controls_are_available() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    assert not app.exception
+    assert any("Advanced calibration" in expander.label for expander in app.expander)
+    assert any("Use airfoil correction" in checkbox.label for checkbox in app.checkbox)
+    assert any("Startup/cogging torque" in number.label for number in app.number_input)

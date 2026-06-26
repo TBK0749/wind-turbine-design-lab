@@ -26,9 +26,12 @@ def render_quick_start_guide() -> None:
    load current, RPM, Cp, TSR, and stall warnings.
 6. **Change one variable at a time.** Adjust one geometry, airfoil, generator, or
    load setting, then compare the result.
-7. **Build and test.** Place the turbine in front of the wind source for the fixed
+7. **Use advanced calibration only when needed.** Teachers or teams can open
+   **Advanced calibration** to match measured generator, air, and loss values.
+   Leave it unchanged for normal classroom comparisons.
+8. **Build and test.** Place the turbine in front of the wind source for the fixed
    trial time and record voltage, current, RPM if available, and mW.
-8. **Explain the difference.** Use the glossary to connect design changes to the
+9. **Explain the difference.** Use the glossary to connect design changes to the
    measured output.
 """
     )
@@ -192,6 +195,21 @@ def render_key_terms_glossary() -> None:
             "Load resistance",
             "The electrical resistance connected to the generator during the test. It affects "
             "voltage, current, and measured mW.",
+        ),
+        (
+            "Advanced calibration",
+            "A teacher/testing panel for manually tuning uncertain constants and disabling "
+            "selected model corrections. Custom settings should be recorded with test results.",
+        ),
+        (
+            "Startup/cogging torque",
+            "The torque needed to begin turning the generator or rotor. If the rotor cannot "
+            "exceed this torque, the model reports zero RPM and zero electrical output.",
+        ),
+        (
+            "Model toggle",
+            "A switch that enables or disables one simplified correction, such as airfoil "
+            "efficiency, hub-area loss, Reynolds correction, or generator power capping.",
         ),
         (
             "BEMT",

@@ -130,6 +130,34 @@ def render_input_panel() -> SimulationInput:
         gear_ratio = st.number_input("Gear ratio (generator ÷ rotor)", 0.01, 100.0, 1.0, 0.1)
         trial_duration = st.number_input("Trial duration (seconds)", 0.1, 86400.0, 60.0, 1.0)
 
+    with st.sidebar.expander("Advanced calibration", expanded=False):
+        st.caption(
+            "Teacher/testing controls. Leave these at default values for normal classroom use."
+        )
+        air_dynamic_viscosity = st.number_input(
+            "Air dynamic viscosity (kg/m·s)",
+            0.000001,
+            0.000100,
+            0.0000181,
+            0.0000001,
+            format="%.7f",
+        )
+        practical_cp_limit = st.number_input("Practical Cp limit", 0.05, 0.592, 0.50, 0.01)
+        airfoil_efficiency_multiplier = st.number_input(
+            "Airfoil efficiency multiplier", 0.10, 2.00, 1.00, 0.05
+        )
+        mechanical_loss = st.slider("Mechanical loss (%)", 0.0, 95.0, 0.0, 1.0)
+        startup_torque = st.number_input("Startup/cogging torque (N·m)", 0.0, 10000.0, 0.0, 0.01)
+
+        st.divider()
+        use_hub_area_loss = st.checkbox("Use hub area loss", value=True)
+        use_airfoil_correction = st.checkbox("Use airfoil correction", value=True)
+        use_material_roughness = st.checkbox("Use material roughness", value=True)
+        use_generator_power_cap = st.checkbox("Use generator power cap", value=True)
+        use_practical_cp_limit = st.checkbox("Use practical Cp limit", value=True)
+        use_reynolds_correction = st.checkbox("Use Reynolds correction", value=True)
+        use_startup_torque_loss = st.checkbox("Use startup torque loss", value=True)
+
     return SimulationInput(
         wind_speed_m_s=wind_speed,
         air_density_kg_m3=air_density,
@@ -150,4 +178,16 @@ def render_input_panel() -> SimulationInput:
         generator_efficiency_percent=generator_efficiency,
         gear_ratio=gear_ratio,
         trial_duration_s=trial_duration,
+        air_dynamic_viscosity_kg_m_s=air_dynamic_viscosity,
+        practical_cp_limit=practical_cp_limit,
+        airfoil_efficiency_multiplier=airfoil_efficiency_multiplier,
+        mechanical_loss_percent=mechanical_loss,
+        startup_torque_n_m=startup_torque,
+        use_hub_area_loss=use_hub_area_loss,
+        use_airfoil_correction=use_airfoil_correction,
+        use_material_roughness=use_material_roughness,
+        use_generator_power_cap=use_generator_power_cap,
+        use_practical_cp_limit=use_practical_cp_limit,
+        use_reynolds_correction=use_reynolds_correction,
+        use_startup_torque_loss=use_startup_torque_loss,
     )

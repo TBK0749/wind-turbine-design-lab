@@ -21,7 +21,7 @@ from windlab.physics import (
 )
 from windlab.scoring import build_recommendations, design_score
 
-AIR_DYNAMIC_VISCOSITY_KG_M_S = 1.81e-5
+DEFAULT_AIR_DYNAMIC_VISCOSITY_KG_M_S = 1.81e-5
 
 
 def estimate_representative_angle_of_attack(
@@ -38,10 +38,11 @@ def estimate_reynolds_number(
     air_density_kg_m3: float,
     wind_speed_m_s: float,
     chord_m: float,
+    dynamic_viscosity_kg_m_s: float = DEFAULT_AIR_DYNAMIC_VISCOSITY_KG_M_S,
 ) -> float:
     """Estimate blade-section Reynolds number from wind speed and representative chord."""
 
-    return air_density_kg_m3 * wind_speed_m_s * chord_m / AIR_DYNAMIC_VISCOSITY_KG_M_S
+    return air_density_kg_m3 * wind_speed_m_s * chord_m / dynamic_viscosity_kg_m_s
 
 
 def adjust_tip_speed_ratio_for_airfoil(
@@ -54,12 +55,34 @@ def adjust_tip_speed_ratio_for_airfoil(
     return min(12.0, max(1.0, tip_speed_ratio * speed_factor))
 
 
+def has_custom_calibration(inputs: SimulationInput) -> bool:
+    """Return whether the simulation differs from the classroom defaults."""
+
+    return any(
+        (
+            inputs.air_dynamic_viscosity_kg_m_s != DEFAULT_AIR_DYNAMIC_VISCOSITY_KG_M_S,
+            inputs.practical_cp_limit != 0.50,
+            inputs.airfoil_efficiency_multiplier != 1.0,
+            inputs.mechanical_loss_percent != 0.0,
+            inputs.startup_torque_n_m != 0.0,
+            not inputs.use_hub_area_loss,
+            not inputs.use_airfoil_correction,
+            not inputs.use_material_roughness,
+            not inputs.use_generator_power_cap,
+            not inputs.use_practical_cp_limit,
+            not inputs.use_reynolds_correction,
+            not inputs.use_startup_torque_loss,
+        )
+    )
+
+
 def simulate(inputs: SimulationInput) -> SimulationResult:
     """Run one deterministic educational simulation."""
 
     material = get_material(inputs.material)
     geometry = summarize_blade_geometry(inputs)
-    area = rotor_swept_area(inputs.rotor_radius_m, inputs.hub_radius_m)
+    hub_radius = inputs.hub_radius_m if inputs.use_hub_area_loss else 0.0
+    area = rotor_swept_area(inputs.rotor_radius_m, hub_radius)
     wind_power = available_wind_power(inputs.air_density_kg_m3, area, inputs.wind_speed_m_s)
     angle_of_attack = estimate_representative_angle_of_attack(
         inputs.pitch_angle_deg,
@@ -69,20 +92,28 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         air_density_kg_m3=inputs.air_density_kg_m3,
         wind_speed_m_s=inputs.wind_speed_m_s,
         chord_m=geometry.mean_chord_m,
+        dynamic_viscosity_kg_m_s=inputs.air_dynamic_viscosity_kg_m_s,
     )
     airfoil = estimate_airfoil_performance(
         inputs.airfoil_type,
         angle_of_attack_deg=angle_of_attack,
-        reynolds_number=reynolds_number,
+        reynolds_number=reynolds_number if inputs.use_reynolds_correction else 200_000.0,
     )
+    effective_airfoil_efficiency = (
+        airfoil.efficiency_factor * inputs.airfoil_efficiency_multiplier
+        if inputs.use_airfoil_correction
+        else 1.0
+    )
+    effective_airfoil_efficiency = max(0.1, min(2.0, effective_airfoil_efficiency))
     tsr = adjust_tip_speed_ratio_for_airfoil(
         estimate_tip_speed_ratio(
             inputs.blade_count,
             inputs.pitch_angle_deg,
             geometry.representative_twist_deg,
         ),
-        airfoil.efficiency_factor,
+        effective_airfoil_efficiency,
     )
+    material_roughness = material.roughness_factor if inputs.use_material_roughness else 1.0
     cp = estimate_cp(
         tip_speed_ratio=tsr,
         blade_count=inputs.blade_count,
@@ -91,13 +122,29 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         rotor_radius_m=inputs.rotor_radius_m,
         pitch_angle_deg=inputs.pitch_angle_deg,
         twist_angle_deg=geometry.representative_twist_deg,
-        roughness_factor=material.roughness_factor * airfoil.efficiency_factor,
+        roughness_factor=material_roughness * effective_airfoil_efficiency,
         mean_chord_m=geometry.mean_chord_m,
+        practical_cp_limit=inputs.practical_cp_limit,
+        use_practical_cp_limit=inputs.use_practical_cp_limit,
     )
     mechanical_power = cp * wind_power
     omega = angular_speed(tsr, inputs.wind_speed_m_s, inputs.rotor_radius_m)
     rpm = rpm_from_angular_speed(omega)
     torque = torque_from_power(mechanical_power, omega)
+
+    warnings: list[str] = []
+    if inputs.use_startup_torque_loss and torque < inputs.startup_torque_n_m:
+        mechanical_power = 0.0
+        omega = 0.0
+        rpm = 0.0
+        torque = 0.0
+        warnings.append(
+            "Startup torque loss: estimated torque is below the configured startup torque."
+        )
+    elif inputs.mechanical_loss_percent > 0.0:
+        mechanical_power *= 1.0 - inputs.mechanical_loss_percent / 100.0
+        torque = torque_from_power(mechanical_power, omega)
+
     generator = simulate_generator(
         rotor_rpm=rpm,
         mechanical_power_w=mechanical_power,
@@ -107,9 +154,13 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         efficiency_percent=inputs.generator_efficiency_percent,
         gear_ratio=inputs.gear_ratio,
         trial_duration_s=inputs.trial_duration_s,
+        cap_output_by_mechanical_power=inputs.use_generator_power_cap,
     )
 
-    warnings: list[str] = []
+    if has_custom_calibration(inputs):
+        warnings.append(
+            "Custom calibration active: constants or model toggles differ from classroom defaults."
+        )
     if inputs.wind_speed_m_s > 25.0:
         warnings.append(
             "High wind speed: this model does not simulate structural or shutdown limits."
@@ -143,7 +194,7 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         airfoil_lift_coefficient=airfoil.lift_coefficient,
         airfoil_drag_coefficient=airfoil.drag_coefficient,
         airfoil_lift_drag_ratio=airfoil.lift_drag_ratio,
-        airfoil_efficiency_factor=airfoil.efficiency_factor,
+        airfoil_efficiency_factor=round(effective_airfoil_efficiency, 3),
         airfoil_angle_of_attack_deg=round(angle_of_attack, 2),
         airfoil_reynolds_number=round(reynolds_number, 0),
         airfoil_stall_risk=airfoil.stall_risk,

@@ -51,6 +51,8 @@ def estimate_cp(
     twist_angle_deg: float,
     roughness_factor: float,
     mean_chord_m: float | None = None,
+    practical_cp_limit: float = PRACTICAL_CP_LIMIT,
+    use_practical_cp_limit: bool = True,
 ) -> float:
     """Estimate a stable Cp for classroom comparison.
 
@@ -72,7 +74,10 @@ def estimate_cp(
         + 0.05 * twist_factor
         + 0.05 * solidity_factor
     ) * roughness_factor
-    return min(cp, PRACTICAL_CP_LIMIT, BETZ_LIMIT - 1e-6)
+    limits = [BETZ_LIMIT - 1e-6]
+    if use_practical_cp_limit:
+        limits.append(practical_cp_limit)
+    return min(cp, *limits)
 
 
 def angular_speed(tip_speed_ratio: float, wind_speed_m_s: float, rotor_radius_m: float) -> float:

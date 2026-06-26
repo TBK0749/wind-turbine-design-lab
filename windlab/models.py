@@ -40,6 +40,18 @@ class SimulationInput(BaseModel):
     generator_efficiency_percent: float = Field(70.0, gt=0.0, le=100.0)
     gear_ratio: float = Field(1.0, gt=0.01, le=100.0)
     trial_duration_s: float = Field(60.0, gt=0.0, le=86400.0)
+    air_dynamic_viscosity_kg_m_s: float = Field(1.81e-5, gt=1e-6, le=1e-4)
+    practical_cp_limit: float = Field(0.50, ge=0.05, le=0.592)
+    airfoil_efficiency_multiplier: float = Field(1.0, ge=0.1, le=2.0)
+    mechanical_loss_percent: float = Field(0.0, ge=0.0, le=95.0)
+    startup_torque_n_m: float = Field(0.0, ge=0.0, le=10000.0)
+    use_hub_area_loss: bool = True
+    use_airfoil_correction: bool = True
+    use_material_roughness: bool = True
+    use_generator_power_cap: bool = True
+    use_practical_cp_limit: bool = True
+    use_reynolds_correction: bool = True
+    use_startup_torque_loss: bool = True
 
     @model_validator(mode="after")
     def validate_geometry(self) -> "SimulationInput":

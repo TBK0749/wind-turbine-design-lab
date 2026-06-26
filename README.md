@@ -134,6 +134,12 @@ Version 0.1 uses wind power, swept area, an educational bounded Cp
 approximation, and an estimated tip-speed ratio. See
 `docs/physics_model.md` for assumptions and limitations.
 
+The app also includes a collapsed **Advanced calibration** panel for teachers
+and competition teams. It can tune uncertain constants such as air viscosity,
+Cp limit, airfoil multiplier, mechanical loss, startup/cogging torque, and
+generator capping. Leave these controls at their defaults for normal student
+comparisons, and record any custom settings with measured test results.
+
 ## Roadmap
 
 - v0.2.0: save and compare multiple designs

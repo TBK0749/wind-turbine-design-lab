@@ -27,6 +27,7 @@ def simulate_generator(
     efficiency_percent: float,
     gear_ratio: float,
     trial_duration_s: float,
+    cap_output_by_mechanical_power: bool = True,
 ) -> GeneratorResult:
     """Estimate electrical output from a DC generator and resistive load.
 
@@ -41,7 +42,11 @@ def simulate_generator(
     ideal_current_a = open_circuit_voltage / total_resistance
     ideal_load_power_w = ideal_current_a**2 * load_resistance_ohm
     maximum_electrical_power_w = mechanical_power_w * efficiency_percent / 100.0
-    electrical_power_w = min(ideal_load_power_w, maximum_electrical_power_w)
+    electrical_power_w = (
+        min(ideal_load_power_w, maximum_electrical_power_w)
+        if cap_output_by_mechanical_power
+        else ideal_load_power_w
+    )
 
     load_current_a = sqrt(electrical_power_w / load_resistance_ohm)
     load_voltage = load_current_a * load_resistance_ohm
