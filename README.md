@@ -12,6 +12,7 @@ blade geometry, mass, and material affect estimated turbine performance.
 - Configure wind, rotor, blade geometry, mass, and material.
 - Design a blade with editable radial Position, Chord, Twist, and station Airfoil choices.
 - Assign NACA-style airfoils per blade station and document each section's role.
+- Blend root, mid-span, and tip airfoil effects so station changes affect the estimate.
 - Preview the cutting outline and chord/twist distribution for fabrication.
 - Choose a classroom airfoil family and review simplified lift/drag feedback.
 - Estimate RPM, torque, mechanical power, Cp, tip-speed ratio, and efficiency.

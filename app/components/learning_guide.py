@@ -19,7 +19,8 @@ def render_quick_start_guide() -> None:
 2. **Enter the blade geometry.** Use the section table for measured blade stations:
    position, chord, local twist, station airfoil, and the airfoil's role.
 3. **Choose or review airfoils.** Section-table mode can assign different NACA
-   airfoils along the blade. Simple root/tip mode uses one global airfoil family.
+   airfoils along the blade. The model blends root, mid-span, and tip effects.
+   Simple root/tip mode uses one global airfoil family.
 4. **Check the build preview.** Confirm the chord distribution and pitch-plus-twist
    angles before cutting material.
 5. **Review the predicted score.** Focus on competition power in mW, load voltage,
@@ -154,7 +155,8 @@ def render_key_terms_glossary() -> None:
         (
             "Section airfoil",
             "The specific airfoil assigned to one blade station, such as NACA 4418 near "
-            "the root for strength or NACA 2412 near the tip for lower drag.",
+            "the root for strength or NACA 2412 near the tip for lower drag. In section "
+            "table mode, all station airfoils contribute to the estimate.",
         ),
         (
             "NACA 4418 / 4415 / 4412",

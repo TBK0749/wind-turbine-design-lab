@@ -4,6 +4,7 @@ import csv
 import io
 import json
 from collections.abc import Iterable
+from dataclasses import dataclass
 
 from windlab.airfoils import estimate_airfoil_performance
 from windlab.blade_geometry import estimate_blade_planform_area, summarize_blade_geometry
@@ -20,8 +21,23 @@ from windlab.physics import (
     torque_from_power,
 )
 from windlab.scoring import build_recommendations, design_score
+from windlab.section_airfoils import get_section_airfoil
 
 DEFAULT_AIR_DYNAMIC_VISCOSITY_KG_M_S = 1.81e-5
+
+
+@dataclass(frozen=True, slots=True)
+class SectionAirfoilBlend:
+    """Weighted section-airfoil result for the simplified pre-BEMT model."""
+
+    representative_airfoil_name: str
+    representative_airfoil_family: str
+    lift_coefficient: float
+    drag_coefficient: float
+    lift_drag_ratio: float
+    efficiency_factor: float
+    stall_risk: bool
+    warnings: tuple[str, ...]
 
 
 def estimate_representative_angle_of_attack(
@@ -53,6 +69,116 @@ def adjust_tip_speed_ratio_for_airfoil(
 
     speed_factor = 0.75 + 0.25 * airfoil_efficiency_factor
     return min(12.0, max(1.0, tip_speed_ratio * speed_factor))
+
+
+def _thickness_factor(thickness_percent: float | None, radius_fraction: float) -> float:
+    """Approximate root strength benefit and tip drag penalty from airfoil thickness."""
+
+    if thickness_percent is None:
+        return 1.0
+
+    factor = 1.0
+    if radius_fraction < 0.30 and thickness_percent >= 15.0:
+        factor += 0.05
+    if radius_fraction < 0.30 and thickness_percent < 12.0:
+        factor -= 0.06
+    if radius_fraction > 0.65 and thickness_percent > 12.0:
+        factor -= min(0.18, 0.02 * (thickness_percent - 12.0))
+    if radius_fraction > 0.80 and thickness_percent <= 12.0:
+        factor += 0.03
+    return max(0.70, min(1.10, factor))
+
+
+def estimate_section_airfoil_blend(inputs: SimulationInput) -> SectionAirfoilBlend:
+    """Blend all section airfoils so root, mid-span, and tip choices all matter."""
+
+    weighted_lift = 0.0
+    weighted_drag = 0.0
+    weighted_efficiency = 0.0
+    total_weight = 0.0
+    representative_weight = -1.0
+    representative_airfoil_name = inputs.blade_sections[0].airfoil_name
+    representative_airfoil_family = get_section_airfoil(representative_airfoil_name).family
+    stall_risk = False
+    warnings: list[str] = []
+
+    active_span = max(inputs.rotor_radius_m - inputs.hub_radius_m, 0.001)
+    for section in inputs.blade_sections:
+        airfoil_definition = get_section_airfoil(section.airfoil_name)
+        radius_fraction = max(
+            0.0,
+            min(1.0, (section.position_m - inputs.hub_radius_m) / active_span),
+        )
+        radius_weight = 0.20 + radius_fraction
+        if radius_fraction > 0.72:
+            radius_weight *= 1.20
+        if radius_fraction < 0.25:
+            radius_weight *= 0.90
+
+        weight = section.chord_m * radius_weight
+        angle_of_attack = estimate_representative_angle_of_attack(
+            inputs.pitch_angle_deg,
+            section.twist_angle_deg,
+        )
+        reynolds_number = estimate_reynolds_number(
+            air_density_kg_m3=inputs.air_density_kg_m3,
+            wind_speed_m_s=inputs.wind_speed_m_s,
+            chord_m=section.chord_m,
+            dynamic_viscosity_kg_m_s=inputs.air_dynamic_viscosity_kg_m_s,
+        )
+        performance = estimate_airfoil_performance(
+            airfoil_definition.family,
+            angle_of_attack_deg=angle_of_attack,
+            reynolds_number=reynolds_number if inputs.use_reynolds_correction else 200_000.0,
+        )
+        thickness_factor = _thickness_factor(
+            airfoil_definition.thickness_percent,
+            radius_fraction,
+        )
+        section_efficiency = performance.efficiency_factor * thickness_factor
+
+        weighted_lift += weight * performance.lift_coefficient
+        weighted_drag += weight * performance.drag_coefficient / max(thickness_factor, 0.001)
+        weighted_efficiency += weight * section_efficiency
+        total_weight += weight
+        stall_risk = stall_risk or performance.stall_risk
+        warnings.extend(performance.warnings)
+
+        representative_score = weight * section_efficiency
+        if representative_score > representative_weight:
+            representative_weight = representative_score
+            representative_airfoil_name = airfoil_definition.name
+            representative_airfoil_family = airfoil_definition.family
+
+    if total_weight <= 0.0:
+        fallback = estimate_airfoil_performance(
+            inputs.airfoil_type,
+            angle_of_attack_deg=inputs.pitch_angle_deg,
+            reynolds_number=200_000.0,
+        )
+        return SectionAirfoilBlend(
+            representative_airfoil_name=inputs.airfoil_type,
+            representative_airfoil_family=inputs.airfoil_type,
+            lift_coefficient=fallback.lift_coefficient,
+            drag_coefficient=fallback.drag_coefficient,
+            lift_drag_ratio=fallback.lift_drag_ratio,
+            efficiency_factor=fallback.efficiency_factor,
+            stall_risk=fallback.stall_risk,
+            warnings=fallback.warnings,
+        )
+
+    lift = weighted_lift / total_weight
+    drag = weighted_drag / total_weight
+    return SectionAirfoilBlend(
+        representative_airfoil_name=representative_airfoil_name,
+        representative_airfoil_family=representative_airfoil_family,
+        lift_coefficient=round(lift, 3),
+        drag_coefficient=round(drag, 4),
+        lift_drag_ratio=round(abs(lift) / max(drag, 0.001), 2),
+        efficiency_factor=round(max(0.45, min(1.12, weighted_efficiency / total_weight)), 3),
+        stall_risk=stall_risk,
+        warnings=tuple(dict.fromkeys(warnings)),
+    )
 
 
 def has_custom_calibration(inputs: SimulationInput) -> bool:
@@ -117,14 +243,16 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         chord_m=geometry.mean_chord_m,
         dynamic_viscosity_kg_m_s=inputs.air_dynamic_viscosity_kg_m_s,
     )
-    effective_airfoil_type = (
-        geometry.representative_airfoil_family if inputs.blade_sections else inputs.airfoil_type
-    )
-    airfoil = estimate_airfoil_performance(
-        effective_airfoil_type,
-        angle_of_attack_deg=angle_of_attack,
-        reynolds_number=reynolds_number if inputs.use_reynolds_correction else 200_000.0,
-    )
+    if inputs.blade_sections:
+        airfoil = estimate_section_airfoil_blend(inputs)
+        effective_airfoil_type = airfoil.representative_airfoil_family
+    else:
+        effective_airfoil_type = inputs.airfoil_type
+        airfoil = estimate_airfoil_performance(
+            effective_airfoil_type,
+            angle_of_attack_deg=angle_of_attack,
+            reynolds_number=reynolds_number if inputs.use_reynolds_correction else 200_000.0,
+        )
     effective_airfoil_efficiency = (
         airfoil.efficiency_factor * inputs.airfoil_efficiency_multiplier
         if inputs.use_airfoil_correction
@@ -227,7 +355,11 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         airfoil_angle_of_attack_deg=round(angle_of_attack, 2),
         airfoil_reynolds_number=round(reynolds_number, 0),
         airfoil_stall_risk=airfoil.stall_risk,
-        representative_airfoil_name=geometry.representative_airfoil_name,
+        representative_airfoil_name=(
+            airfoil.representative_airfoil_name
+            if inputs.blade_sections
+            else geometry.representative_airfoil_name
+        ),
         representative_airfoil_family=effective_airfoil_type,
         recommendations=build_recommendations(
             inputs,

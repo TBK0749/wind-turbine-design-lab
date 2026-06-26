@@ -60,3 +60,15 @@ def test_section_airfoil_table_columns_are_available() -> None:
     assert not app.exception
     assert any("NACA 4418" in text.value for text in app.markdown)
     assert any(metric.label == "Representative airfoil" for metric in app.metric)
+
+
+def test_global_airfoil_selector_is_hidden_in_section_table_mode() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    assert not app.exception
+    assert not any(selectbox.label == "Airfoil type" for selectbox in app.selectbox)
+    assert any(
+        "Section table airfoils override the simple airfoil selector" in text.value
+        for text in app.markdown
+    )

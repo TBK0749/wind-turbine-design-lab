@@ -75,9 +75,10 @@ classroom airfoil family: flat plate / foam board, cambered plate, symmetric
 airfoil, or high-lift airfoil. In section-table mode, each station can choose a
 specific airfoil such as NACA 4418, NACA 4415, NACA 4412, NACA 2412, NACA 0012,
 Clark Y, Selig S1223, or Flat plate. The simulator maps each named airfoil to
-one of the educational airfoil families, then uses the representative
-section outside the hub for the simplified lift/drag estimate. The simulator
-estimates a representative angle of attack:
+one of the educational airfoil families, then blends all station airfoils with
+radial/chord weighting. Root sections retain a small startup/strength influence,
+mid-span sections dominate lift, and tip sections receive extra RPM/drag weight.
+The simulator estimates a representative angle of attack:
 
 ```text
 αrepresentative = whole-blade pitch + 0.35 × representative twist

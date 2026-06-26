@@ -36,7 +36,7 @@ def test_hub_can_cover_inner_fabrication_section_without_validation_error() -> N
     result = simulate(inputs)
 
     assert result.rpm > 0.0
-    assert result.representative_airfoil_name in {"NACA 4412", "NACA 4415", "NACA 4418"}
+    assert result.representative_airfoil_name in {"NACA 4412", "NACA 4415", "NACA 2412"}
 
 
 def test_unknown_section_airfoil_is_rejected() -> None:
@@ -59,5 +59,52 @@ def test_section_airfoils_override_global_airfoil_family() -> None:
         )
     )
 
-    assert result.representative_airfoil_family == "High-lift airfoil"
-    assert result.airfoil_efficiency_factor > 0.638
+    assert result.representative_airfoil_family != "Flat plate / Foam board"
+    assert result.airfoil_efficiency_factor > 0.70
+
+
+def _with_section_airfoil(section_index: int, airfoil_name: str) -> tuple[BladeSection, ...]:
+    sections = list(competition_50cm_sections())
+    section = sections[section_index]
+    sections[section_index] = section.model_copy(update={"airfoil_name": airfoil_name})
+    return tuple(sections)
+
+
+def test_root_section_airfoil_affects_efficiency() -> None:
+    baseline = simulate(
+        SimulationInput(
+            rotor_radius_m=0.45,
+            hub_radius_m=0.10,
+            blade_sections=competition_50cm_sections(),
+        )
+    )
+    root_flat = simulate(
+        SimulationInput(
+            rotor_radius_m=0.45,
+            hub_radius_m=0.10,
+            blade_sections=_with_section_airfoil(0, "Flat plate"),
+        )
+    )
+
+    assert root_flat.airfoil_efficiency_factor < baseline.airfoil_efficiency_factor
+    assert root_flat.electrical_power_mw < baseline.electrical_power_mw
+
+
+def test_tip_section_airfoil_affects_rpm() -> None:
+    baseline = simulate(
+        SimulationInput(
+            rotor_radius_m=0.45,
+            hub_radius_m=0.10,
+            blade_sections=competition_50cm_sections(),
+        )
+    )
+    draggy_tip = simulate(
+        SimulationInput(
+            rotor_radius_m=0.45,
+            hub_radius_m=0.10,
+            blade_sections=_with_section_airfoil(5, "Flat plate"),
+        )
+    )
+
+    assert draggy_tip.rpm < baseline.rpm
+    assert draggy_tip.electrical_power_mw < baseline.electrical_power_mw

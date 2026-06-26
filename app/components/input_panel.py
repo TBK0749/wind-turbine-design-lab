@@ -139,13 +139,27 @@ def render_input_panel() -> SimulationInput:
         tip_chord = st.number_input("Tip chord (m)", 0.005, 10.0, 0.08, 0.005)
         twist = st.slider("Twist angle (°)", 0.0, 45.0, 12.0, 0.5)
 
-    with st.sidebar.expander("Airfoil", expanded=True):
-        airfoil_type = st.selectbox(
-            "Airfoil type",
-            list(AIRFOIL_LIBRARY),
-            help="Choose the blade cross-section family used by the simplified lift/drag model.",
+    if geometry_mode == "Section table":
+        airfoil_type = "High-lift airfoil"
+        st.sidebar.markdown(
+            "**Section table airfoils override the simple airfoil selector.** "
+            "Change Airfoil values directly in the blade geometry table."
         )
-        st.caption(AIRFOIL_LIBRARY[airfoil_type].description)
+        st.sidebar.info(
+            "Section table airfoils override the simple airfoil selector. "
+            "Change Airfoil values directly in the blade geometry table.",
+            icon="ℹ️",
+        )
+    else:
+        with st.sidebar.expander("Airfoil", expanded=True):
+            airfoil_type = st.selectbox(
+                "Airfoil type",
+                list(AIRFOIL_LIBRARY),
+                help=(
+                    "Choose the blade cross-section family used by the simplified lift/drag model."
+                ),
+            )
+            st.caption(AIRFOIL_LIBRARY[airfoil_type].description)
 
     with st.sidebar.expander("Blade physical", expanded=True):
         blade_mass = st.number_input("Mass per blade (kg)", 0.01, 10000.0, 1.0, 0.1)
