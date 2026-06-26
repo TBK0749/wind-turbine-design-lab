@@ -102,8 +102,9 @@ with design_tab:
         st.write(
             "Available wind power is calculated as ½ρAV³. Mechanical power is Cp times "
             "available power. RPM is estimated from tip-speed ratio, and torque is power "
-            "divided by angular speed. The airfoil model estimates representative lift, "
-            "drag, stall risk, and Reynolds number from the selected cross-section family. "
+            "divided by angular speed. Section-table mode can assign a different airfoil "
+            "to each blade station; the model maps the representative section to a "
+            "simplified lift/drag family. "
             "Generator voltage scales with RPM; current is estimated from generator and "
             "load resistance. Electrical output cannot exceed the available mechanical "
             "power after generator efficiency. Cp, TSR, and airfoil values remain "

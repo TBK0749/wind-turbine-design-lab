@@ -7,6 +7,7 @@ from windlab.airfoils import AIRFOIL_LIBRARY
 from windlab.blade_geometry import competition_50cm_sections
 from windlab.materials import MATERIALS
 from windlab.models import BladeSection, SimulationInput
+from windlab.section_airfoils import get_section_airfoil, section_airfoil_options
 
 
 def _competition_section_frame() -> pd.DataFrame:
@@ -20,6 +21,8 @@ def _competition_section_frame() -> pd.DataFrame:
             "Position (cm)": [section.position_m * 100.0 for section in sections],
             "Chord (cm)": [section.chord_m * 100.0 for section in sections],
             "Twist (deg)": [section.twist_angle_deg for section in sections],
+            "Airfoil": [section.airfoil_name for section in sections],
+            "Airfoil role / purpose": [section.airfoil_role for section in sections],
         }
     )
 
@@ -29,14 +32,28 @@ def _sections_from_frame(frame: pd.DataFrame) -> tuple[BladeSection, ...]:
 
     sections: list[BladeSection] = []
     for _, row in frame.iterrows():
-        values = (row.get("Position (cm)"), row.get("Chord (cm)"), row.get("Twist (deg)"))
+        values = (
+            row.get("Position (cm)"),
+            row.get("Chord (cm)"),
+            row.get("Twist (deg)"),
+            row.get("Airfoil"),
+        )
         if any(pd.isna(value) for value in values):
             continue
+        airfoil_name = str(values[3])
+        role = row.get("Airfoil role / purpose")
+        airfoil_role = (
+            get_section_airfoil(airfoil_name).role
+            if pd.isna(role) or not str(role).strip()
+            else str(role)
+        )
         sections.append(
             BladeSection(
                 position_m=float(values[0]) / 100.0,
                 chord_m=float(values[1]) / 100.0,
                 twist_angle_deg=float(values[2]),
+                airfoil_name=airfoil_name,
+                airfoil_role=airfoil_role,
             )
         )
     return tuple(sorted(sections, key=lambda section: section.position_m))
@@ -51,8 +68,8 @@ def render_input_panel() -> SimulationInput:
         air_density = st.number_input("Air density (kg/m³)", 0.5, 1.5, 1.225, 0.005)
 
     with st.sidebar.expander("Rotor", expanded=True):
-        rotor_radius = st.number_input("Blade length / rotor radius (m)", 0.06, 100.0, 0.5, 0.05)
-        hub_radius = st.number_input("Hub radius (m)", 0.0, 20.0, 0.05, 0.01)
+        rotor_radius = st.number_input("Blade length / rotor radius (m)", 0.06, 100.0, 0.45, 0.05)
+        hub_radius = st.number_input("Hub radius (m)", 0.0, 20.0, 0.10, 0.01)
         blade_count = st.slider("Number of blades", 1, 12, 3)
 
     geometry_mode = st.sidebar.radio(
@@ -94,7 +111,23 @@ def render_input_panel() -> SimulationInput:
                 "Twist (deg)": st.column_config.NumberColumn(
                     "Twist (deg)", min_value=-20.0, max_value=60.0, step=1.0, format="%.1f"
                 ),
+                "Airfoil": st.column_config.SelectboxColumn(
+                    "Airfoil",
+                    options=section_airfoil_options(),
+                    help="Airfoil assigned to this blade station.",
+                    required=True,
+                ),
+                "Airfoil role / purpose": st.column_config.TextColumn(
+                    "Airfoil role / purpose",
+                    help="Why this airfoil is used at this blade station.",
+                    width="large",
+                ),
             },
+        )
+        st.markdown(
+            "**Airfoil preset:** NACA 4418 → NACA 4415 → NACA 4412 → "
+            "NACA 4412 → NACA 2412 → NACA 2412. "
+            "Use thicker root sections for strength and thinner tip sections to reduce drag."
         )
         blade_sections = _sections_from_frame(section_frame)
         root_chord = blade_sections[0].chord_m if blade_sections else 0.09

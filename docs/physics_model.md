@@ -61,16 +61,23 @@ energy (mJ) = power (mW) × trial duration (seconds)
 ## Educational approximations
 
 Version 0.1 accepts either simple root/tip geometry or several measured blade
-stations. In sectional mode, each station contains radial position, chord, and
-local twist. The current pre-BEMT model calculates representative chord and
-twist values using radial-area weighting, so outer stations contribute more
-than inner stations. It then estimates Cp and tip-speed ratio from broad trends
-in blade count, chord, pitch, twist, and material roughness. Values are smoothly
-bounded, and Cp is kept below practical and Betz limits.
+stations. In sectional mode, each station contains radial position, chord,
+local twist, station airfoil, and the airfoil's role. The current pre-BEMT
+model calculates representative chord and twist values using radial-area
+weighting outside the hub radius, so inner fabrication sections can exist
+inside the hub without crashing the simulation. It then estimates Cp and
+tip-speed ratio from broad trends in blade count, chord, pitch, twist, airfoil,
+and material roughness. Values are smoothly bounded, and Cp is kept below
+practical and Betz limits.
 
-The airfoil model is also simplified. Users choose one classroom airfoil family:
-flat plate / foam board, cambered plate, symmetric airfoil, or high-lift
-airfoil. The simulator estimates a representative angle of attack:
+The airfoil model is also simplified. In simple root/tip mode, users choose one
+classroom airfoil family: flat plate / foam board, cambered plate, symmetric
+airfoil, or high-lift airfoil. In section-table mode, each station can choose a
+specific airfoil such as NACA 4418, NACA 4415, NACA 4412, NACA 2412, NACA 0012,
+Clark Y, Selig S1223, or Flat plate. The simulator maps each named airfoil to
+one of the educational airfoil families, then uses the representative
+section outside the hub for the simplified lift/drag estimate. The simulator
+estimates a representative angle of attack:
 
 ```text
 αrepresentative = whole-blade pitch + 0.35 × representative twist
@@ -150,16 +157,16 @@ stations. This is still an educational estimate: it does not include glue,
 fasteners, spars, hubs, leading-edge reinforcement, or actual 3D airfoil volume.
 If the real blade can be weighed, manual mass is usually more reliable.
 
-The supplied 50 cm competition preset uses:
+The supplied 45 cm competition preset uses:
 
-| Position (cm) | Chord (cm) | Twist (deg) |
-|---:|---:|---:|
-| 5 | 9.0 | 20 |
-| 15 | 7.5 | 14 |
-| 25 | 5.5 | 9 |
-| 35 | 4.0 | 5 |
-| 45 | 2.8 | 2 |
-| 50 | 2.0 | 0 |
+| Position (cm) | Chord (cm) | Twist (deg) | Airfoil | Role |
+|---:|---:|---:|---|---|
+| 5 | 8.5 | 20 | NACA 4418 | Thick root section for strength and startup torque |
+| 13 | 7.2 | 14 | NACA 4415 | Transition section with reduced thickness |
+| 21 | 5.6 | 9 | NACA 4412 | Primary lift section |
+| 29 | 4.2 | 5 | NACA 4412 | Primary lift support section |
+| 37 | 3.0 | 2 | NACA 2412 | Fast outer-blade section with lower drag |
+| 45 | 1.8 | 0 | NACA 2412 | Thin tip section to reduce tip-vortex drag |
 
 Whole-blade pitch is added to each local twist value for the fabrication
 preview. A later BEMT version will calculate forces independently at each

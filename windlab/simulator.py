@@ -117,8 +117,11 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         chord_m=geometry.mean_chord_m,
         dynamic_viscosity_kg_m_s=inputs.air_dynamic_viscosity_kg_m_s,
     )
+    effective_airfoil_type = (
+        geometry.representative_airfoil_family if inputs.blade_sections else inputs.airfoil_type
+    )
     airfoil = estimate_airfoil_performance(
-        inputs.airfoil_type,
+        effective_airfoil_type,
         angle_of_attack_deg=angle_of_attack,
         reynolds_number=reynolds_number if inputs.use_reynolds_correction else 200_000.0,
     )
@@ -224,13 +227,15 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         airfoil_angle_of_attack_deg=round(angle_of_attack, 2),
         airfoil_reynolds_number=round(reynolds_number, 0),
         airfoil_stall_risk=airfoil.stall_risk,
+        representative_airfoil_name=geometry.representative_airfoil_name,
+        representative_airfoil_family=effective_airfoil_type,
         recommendations=build_recommendations(
             inputs,
             cp,
             tsr,
             representative_twist_deg=geometry.representative_twist_deg,
             airfoil_stall_risk=airfoil.stall_risk,
-            airfoil_efficiency_factor=airfoil.efficiency_factor,
+            airfoil_efficiency_factor=effective_airfoil_efficiency,
         ),
         warnings=tuple(warnings),
     )

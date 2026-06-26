@@ -17,9 +17,9 @@ def render_quick_start_guide() -> None:
 1. **Set the wind and trial conditions.** Match the fan or wind tunnel speed,
    air density if known, and the fixed trial duration.
 2. **Enter the blade geometry.** Use the section table for measured blade stations:
-   position, chord, and local twist.
-3. **Choose the airfoil family.** Select the option that best matches the blade
-   cross-section you will actually build.
+   position, chord, local twist, station airfoil, and the airfoil's role.
+3. **Choose or review airfoils.** Section-table mode can assign different NACA
+   airfoils along the blade. Simple root/tip mode uses one global airfoil family.
 4. **Check the build preview.** Confirm the chord distribution and pitch-plus-twist
    angles before cutting material.
 5. **Review the predicted score.** Focus on competition power in mW, load voltage,
@@ -150,6 +150,21 @@ def render_key_terms_glossary() -> None:
             "Airfoil",
             "The cross-section shape of the blade. Flat plates are easy to build; cambered "
             "or high-lift shapes can produce more lift but may be harder to fabricate.",
+        ),
+        (
+            "Section airfoil",
+            "The specific airfoil assigned to one blade station, such as NACA 4418 near "
+            "the root for strength or NACA 2412 near the tip for lower drag.",
+        ),
+        (
+            "NACA 4418 / 4415 / 4412",
+            "Cambered four-digit NACA airfoils used here for the root and main lift region. "
+            "The final two digits describe approximate thickness as a percentage of chord.",
+        ),
+        (
+            "NACA 2412",
+            "A thinner cambered NACA airfoil used here near the faster outer blade and tip "
+            "sections to reduce drag while keeping useful lift.",
         ),
         (
             "Chord",

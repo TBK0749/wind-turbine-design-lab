@@ -96,6 +96,8 @@ def render_blade_geometry(inputs: SimulationInput) -> None:
             "Chord (cm)": chords_cm,
             "Local twist (°)": twists,
             "Pitch + twist (°)": effective_angles,
+            "Airfoil": [section.airfoil_name for section in sections],
+            "Airfoil role / purpose": [section.airfoil_role for section in sections],
         }
     )
     st.dataframe(build_table, hide_index=True, width="stretch")

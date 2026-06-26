@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from windlab.airfoils import AIRFOIL_LIBRARY
 from windlab.materials import MATERIALS
+from windlab.section_airfoils import get_section_airfoil
 
 
 class BladeSection(BaseModel):
@@ -14,6 +15,15 @@ class BladeSection(BaseModel):
     position_m: float = Field(gt=0.0, le=100.0)
     chord_m: float = Field(gt=0.001, le=10.0)
     twist_angle_deg: float = Field(ge=-20.0, le=60.0)
+    airfoil_name: str = Field("NACA 4412")
+    airfoil_role: str = Field("")
+
+    @model_validator(mode="after")
+    def validate_section_airfoil(self) -> "BladeSection":
+        """Validate the station-level airfoil choice."""
+
+        get_section_airfoil(self.airfoil_name)
+        return self
 
 
 class SimulationInput(BaseModel):
@@ -75,10 +85,10 @@ class SimulationInput(BaseModel):
             positions = [section.position_m for section in self.blade_sections]
             if positions != sorted(positions) or len(positions) != len(set(positions)):
                 raise ValueError("Blade section positions must be unique and increasing.")
-            if positions[0] < self.hub_radius_m:
-                raise ValueError("The first blade section cannot be inside the hub radius.")
             if positions[-1] > self.rotor_radius_m:
                 raise ValueError("The final blade section cannot exceed the rotor radius.")
+            if all(position <= self.hub_radius_m for position in positions):
+                raise ValueError("At least one blade section must be outside the hub radius.")
         return self
 
 
@@ -111,5 +121,7 @@ class SimulationResult(BaseModel):
     airfoil_angle_of_attack_deg: float
     airfoil_reynolds_number: float
     airfoil_stall_risk: bool
+    representative_airfoil_name: str
+    representative_airfoil_family: str
     recommendations: tuple[str, ...]
     warnings: tuple[str, ...] = ()
