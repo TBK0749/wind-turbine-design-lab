@@ -22,6 +22,8 @@ blade geometry, mass, and material affect estimated turbine performance.
 - Configure generator voltage constant, resistance, load, efficiency, gearing, and time.
 - Read the built-in English guide and key-term glossary in the dashboard.
 - Download the current result as CSV or JSON.
+- Log measured prototype trials in the Phase 2 Calibration scaffold.
+- Compare predicted vs measured RPM and mW, then export a calibration worksheet.
 - Run completely on the user's computer.
 
 ## Local installation guide
@@ -151,10 +153,15 @@ mass manually or estimate blade mass from material density, blade thickness,
 and blade planform area. Blade mass affects rotor inertia and timed-run spin-up,
 while surface finish affects aerodynamic drag.
 
+The **Calibration** tab is a Phase 2 scaffold. It records measured prototype
+RPM and mW, calculates prediction error and correction factors, and exports CSV
+or Markdown worksheets. It does not automatically change the physics model until
+real repeatable test data is available.
+
 ## Roadmap
 
-- v0.2.0: save and compare multiple designs
-- v0.3.0: structured experiment log
-- v0.4.0: calibration from measured wind-tunnel test results
+- v0.2.0: measured-data calibration workflow
+- v0.3.0: persistent experiment log files
+- v0.4.0: calibration from repeated wind-tunnel test results
 - v1.0.0: stable classroom release
 - v2.x: full iterative Blade Element Momentum Theory (BEMT)

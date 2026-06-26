@@ -14,6 +14,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from app.components.airfoil_help import render_airfoil_help  # noqa: E402
 from app.components.airfoil_preview import render_airfoil_preview  # noqa: E402
 from app.components.blade_geometry import render_blade_geometry  # noqa: E402
+from app.components.calibration_lab import render_calibration_lab  # noqa: E402
 from app.components.charts import render_performance_charts  # noqa: E402
 from app.components.design_compare import render_design_comparison  # noqa: E402
 from app.components.input_panel import render_input_panel  # noqa: E402
@@ -44,7 +45,9 @@ st.info(
     icon="ℹ️",
 )
 
-design_tab, guide_tab, glossary_tab = st.tabs(["Design Lab", "Guide", "Glossary"])
+design_tab, calibration_tab, guide_tab, glossary_tab = st.tabs(
+    ["Design Lab", "Calibration", "Guide", "Glossary"]
+)
 
 with design_tab:
     try:
@@ -127,6 +130,9 @@ with design_tab:
             "power after generator efficiency. Cp, TSR, and airfoil values remain "
             "educational approximations, not a replacement for full QBlade/BEMT validation."
         )
+
+with calibration_tab:
+    render_calibration_lab(simulation_input, simulation_result)
 
 with guide_tab:
     render_quick_start_guide()

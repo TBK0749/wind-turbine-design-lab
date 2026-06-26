@@ -35,7 +35,9 @@ def render_quick_start_guide() -> None:
    Leave it unchanged for normal classroom comparisons.
 9. **Build and test.** Place the turbine in front of the wind source for the fixed
    trial time and record voltage, current, RPM if available, and mW.
-10. **Explain the difference.** Use the glossary to connect design changes to the
+10. **Log measured results.** Use the **Calibration** tab to enter measured RPM
+   and mW after a real prototype test. Export the worksheet for your notebook.
+11. **Explain the difference.** Use the glossary to connect design changes to the
    measured output.
 """
     )
@@ -256,6 +258,17 @@ def render_key_terms_glossary() -> None:
             "Advanced calibration",
             "A teacher/testing panel for manually tuning uncertain constants and disabling "
             "selected model corrections. Custom settings should be recorded with test results.",
+        ),
+        (
+            "Calibration scaffold",
+            "A Phase 2 worksheet for comparing predicted RPM/mW with measured prototype "
+            "results. It calculates error and correction factors, but does not automatically "
+            "change the physics model.",
+        ),
+        (
+            "Correction factor",
+            "Measured value divided by predicted value. If several tests give similar "
+            "factors, a teacher or team can use them later to tune the model.",
         ),
         (
             "Startup/cogging torque",

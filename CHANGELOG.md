@@ -4,7 +4,11 @@ All notable changes follow Semantic Versioning.
 
 ## [Unreleased]
 
-No unreleased changes.
+### Added
+
+- Phase 2 calibration scaffold for measured RPM/mW experiment logging.
+- Predicted-vs-measured error and correction factor calculations.
+- Calibration CSV and Markdown worksheet exports.
 
 ## [0.1.0] - 2026-06-27
 
