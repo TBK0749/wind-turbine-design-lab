@@ -55,6 +55,23 @@ def summarize_blade_geometry(inputs: SimulationInput) -> BladeGeometrySummary:
     )
 
 
+def estimate_blade_planform_area(inputs: SimulationInput) -> float:
+    """Estimate one blade's top-view area in square metres."""
+
+    if not inputs.blade_sections:
+        span = inputs.rotor_radius_m - inputs.hub_radius_m
+        mean_chord = (inputs.root_chord_m + inputs.tip_chord_m) / 2.0
+        return span * mean_chord
+
+    sections = inputs.blade_sections
+    area = 0.0
+    for inner, outer in zip(sections, sections[1:], strict=False):
+        radial_width = outer.position_m - inner.position_m
+        mean_chord = (inner.chord_m + outer.chord_m) / 2.0
+        area += radial_width * mean_chord
+    return area
+
+
 def competition_50cm_sections() -> tuple[BladeSection, ...]:
     """Return the six-station geometry supplied for the competition blade."""
 

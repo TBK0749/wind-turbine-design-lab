@@ -14,11 +14,12 @@ def render_result_cards(result: SimulationResult) -> None:
     first[2].metric("Mechanical power", f"{result.mechanical_power_w:,.1f} W")
     first[3].metric("Design score", f"{result.design_score:.1f}/100")
 
-    second = st.columns(4)
+    second = st.columns(5)
     second[0].metric("Cp", f"{result.cp:.3f}")
     second[1].metric("Tip-speed ratio", f"{result.tip_speed_ratio:.2f}")
     second[2].metric("Efficiency", f"{result.efficiency_percent:.1f}%")
     second[3].metric("Rotor area", f"{result.rotor_area_m2:.2f} m²")
+    second[4].metric("Blade mass", f"{result.effective_blade_mass_kg:.3f} kg")
 
 
 def render_competition_cards(result: SimulationResult) -> None:

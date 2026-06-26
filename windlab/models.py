@@ -34,6 +34,12 @@ class SimulationInput(BaseModel):
     airfoil_type: str = Field("Flat plate / Foam board")
     blade_mass_kg: float = Field(1.0, gt=0.01, le=10000.0)
     material: str = Field("Wood")
+    use_custom_material_properties: bool = False
+    custom_material_density_kg_m3: float = Field(650.0, gt=1.0, le=30000.0)
+    custom_material_roughness_factor: float = Field(0.94, ge=0.1, le=1.5)
+    custom_material_durability_factor: float = Field(0.70, ge=0.0, le=1.0)
+    use_estimated_blade_mass: bool = False
+    blade_thickness_m: float = Field(0.005, gt=0.0001, le=0.5)
     generator_volts_per_1000_rpm: float = Field(1.5, gt=0.01, le=100.0)
     generator_internal_resistance_ohm: float = Field(20.0, ge=0.0, le=10000.0)
     load_resistance_ohm: float = Field(100.0, gt=0.01, le=1000000.0)
@@ -87,6 +93,9 @@ class SimulationResult(BaseModel):
     cp: float
     tip_speed_ratio: float
     efficiency_percent: float
+    effective_blade_mass_kg: float
+    blade_planform_area_m2: float
+    material_density_kg_m3: float
     design_score: float
     generator_rpm: float
     open_circuit_voltage_v: float

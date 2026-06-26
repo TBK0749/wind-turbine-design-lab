@@ -24,14 +24,17 @@ def render_quick_start_guide() -> None:
    angles before cutting material.
 5. **Review the predicted score.** Focus on competition power in mW, load voltage,
    load current, RPM, Cp, TSR, and stall warnings.
-6. **Change one variable at a time.** Adjust one geometry, airfoil, generator, or
+6. **Set blade material and mass.** Use preset materials, or enable custom
+   material properties when you know the density, roughness, or durability.
+   You may enter mass manually or estimate it from density and blade thickness.
+7. **Change one variable at a time.** Adjust one geometry, airfoil, generator, or
    load setting, then compare the result.
-7. **Use advanced calibration only when needed.** Teachers or teams can open
+8. **Use advanced calibration only when needed.** Teachers or teams can open
    **Advanced calibration** to match measured generator, air, and loss values.
    Leave it unchanged for normal classroom comparisons.
-8. **Build and test.** Place the turbine in front of the wind source for the fixed
+9. **Build and test.** Place the turbine in front of the wind source for the fixed
    trial time and record voltage, current, RPM if available, and mW.
-9. **Explain the difference.** Use the glossary to connect design changes to the
+10. **Explain the difference.** Use the glossary to connect design changes to the
    measured output.
 """
     )
@@ -195,6 +198,21 @@ def render_key_terms_glossary() -> None:
             "Load resistance",
             "The electrical resistance connected to the generator during the test. It affects "
             "voltage, current, and measured mW.",
+        ),
+        (
+            "Material density",
+            "Mass per unit volume, measured in kg/m³. Higher-density materials usually make "
+            "the blade heavier when the shape and thickness stay the same.",
+        ),
+        (
+            "Estimated blade mass",
+            "An optional estimate calculated from blade planform area, blade thickness, and "
+            "material density. Manual mass entry remains available when the blade is weighed.",
+        ),
+        (
+            "Surface roughness factor",
+            "A simplified factor for how smooth the blade surface is. Lower values reduce "
+            "the educational Cp estimate because rougher surfaces tend to add drag.",
         ),
         (
             "Advanced calibration",

@@ -39,3 +39,42 @@ def test_startup_torque_can_stop_low_torque_design() -> None:
     assert result.rpm == 0.0
     assert result.electrical_power_mw == 0.0
     assert any("startup torque" in warning.lower() for warning in result.warnings)
+
+
+def test_custom_material_roughness_changes_cp() -> None:
+    smooth = simulate(
+        SimulationInput(
+            use_custom_material_properties=True,
+            custom_material_roughness_factor=1.0,
+        )
+    )
+    rough = simulate(
+        SimulationInput(
+            use_custom_material_properties=True,
+            custom_material_roughness_factor=0.70,
+        )
+    )
+
+    assert rough.cp < smooth.cp
+
+
+def test_estimated_blade_mass_uses_density_and_thickness() -> None:
+    light = simulate(
+        SimulationInput(
+            use_estimated_blade_mass=True,
+            use_custom_material_properties=True,
+            custom_material_density_kg_m3=100.0,
+            blade_thickness_m=0.005,
+        )
+    )
+    heavy = simulate(
+        SimulationInput(
+            use_estimated_blade_mass=True,
+            use_custom_material_properties=True,
+            custom_material_density_kg_m3=2000.0,
+            blade_thickness_m=0.005,
+        )
+    )
+
+    assert heavy.effective_blade_mass_kg > light.effective_blade_mass_kg
+    assert heavy.design_score < light.design_score

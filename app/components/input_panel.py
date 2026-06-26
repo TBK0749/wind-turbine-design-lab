@@ -117,6 +117,55 @@ def render_input_panel() -> SimulationInput:
     with st.sidebar.expander("Blade physical", expanded=True):
         blade_mass = st.number_input("Mass per blade (kg)", 0.01, 10000.0, 1.0, 0.1)
         material = st.selectbox("Material", list(MATERIALS))
+        selected_material = MATERIALS[material]
+        st.caption(
+            f"Preset density: {selected_material.density_kg_m3:,.0f} kg/m³ · "
+            f"roughness: {selected_material.roughness_factor:.2f}"
+        )
+        use_custom_material_properties = st.checkbox(
+            "Use custom material properties",
+            value=False,
+            help="Override the selected material density, surface roughness, and durability.",
+        )
+        custom_material_density = st.number_input(
+            "Material density (kg/m³)",
+            1.0,
+            30000.0,
+            float(selected_material.density_kg_m3),
+            10.0,
+            disabled=not use_custom_material_properties,
+        )
+        custom_material_roughness = st.number_input(
+            "Material roughness factor",
+            0.10,
+            1.50,
+            float(selected_material.roughness_factor),
+            0.01,
+            disabled=not use_custom_material_properties,
+        )
+        custom_material_durability = st.number_input(
+            "Material durability factor",
+            0.0,
+            1.0,
+            float(selected_material.durability_factor),
+            0.05,
+            disabled=not use_custom_material_properties,
+        )
+
+        use_estimated_blade_mass = st.checkbox(
+            "Estimate blade mass from density",
+            value=False,
+            help="Use blade planform area × thickness × material density instead of manual mass.",
+        )
+        blade_thickness = st.number_input(
+            "Blade thickness (m)",
+            0.0001,
+            0.5000,
+            0.0050,
+            0.0005,
+            format="%.4f",
+            disabled=not use_estimated_blade_mass,
+        )
 
     with st.sidebar.expander("Competition generator", expanded=True):
         volts_per_1000_rpm = st.number_input(
@@ -172,6 +221,12 @@ def render_input_panel() -> SimulationInput:
         airfoil_type=airfoil_type,
         blade_mass_kg=blade_mass,
         material=material,
+        use_custom_material_properties=use_custom_material_properties,
+        custom_material_density_kg_m3=custom_material_density,
+        custom_material_roughness_factor=custom_material_roughness,
+        custom_material_durability_factor=custom_material_durability,
+        use_estimated_blade_mass=use_estimated_blade_mass,
+        blade_thickness_m=blade_thickness,
         generator_volts_per_1000_rpm=volts_per_1000_rpm,
         generator_internal_resistance_ohm=internal_resistance,
         load_resistance_ohm=load_resistance,

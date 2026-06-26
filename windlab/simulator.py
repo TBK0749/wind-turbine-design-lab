@@ -6,7 +6,7 @@ import json
 from collections.abc import Iterable
 
 from windlab.airfoils import estimate_airfoil_performance
-from windlab.blade_geometry import summarize_blade_geometry
+from windlab.blade_geometry import estimate_blade_planform_area, summarize_blade_geometry
 from windlab.generator import simulate_generator
 from windlab.materials import get_material
 from windlab.models import SimulationInput, SimulationResult
@@ -65,6 +65,8 @@ def has_custom_calibration(inputs: SimulationInput) -> bool:
             inputs.airfoil_efficiency_multiplier != 1.0,
             inputs.mechanical_loss_percent != 0.0,
             inputs.startup_torque_n_m != 0.0,
+            inputs.use_custom_material_properties,
+            inputs.use_estimated_blade_mass,
             not inputs.use_hub_area_loss,
             not inputs.use_airfoil_correction,
             not inputs.use_material_roughness,
@@ -80,7 +82,28 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
     """Run one deterministic educational simulation."""
 
     material = get_material(inputs.material)
+    material_density = (
+        inputs.custom_material_density_kg_m3
+        if inputs.use_custom_material_properties
+        else material.density_kg_m3
+    )
+    material_roughness_default = (
+        inputs.custom_material_roughness_factor
+        if inputs.use_custom_material_properties
+        else material.roughness_factor
+    )
+    material_durability = (
+        inputs.custom_material_durability_factor
+        if inputs.use_custom_material_properties
+        else material.durability_factor
+    )
     geometry = summarize_blade_geometry(inputs)
+    blade_planform_area = estimate_blade_planform_area(inputs)
+    effective_blade_mass = (
+        blade_planform_area * inputs.blade_thickness_m * material_density
+        if inputs.use_estimated_blade_mass
+        else inputs.blade_mass_kg
+    )
     hub_radius = inputs.hub_radius_m if inputs.use_hub_area_loss else 0.0
     area = rotor_swept_area(inputs.rotor_radius_m, hub_radius)
     wind_power = available_wind_power(inputs.air_density_kg_m3, area, inputs.wind_speed_m_s)
@@ -113,7 +136,7 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         ),
         effective_airfoil_efficiency,
     )
-    material_roughness = material.roughness_factor if inputs.use_material_roughness else 1.0
+    material_roughness = material_roughness_default if inputs.use_material_roughness else 1.0
     cp = estimate_cp(
         tip_speed_ratio=tsr,
         blade_count=inputs.blade_count,
@@ -178,11 +201,14 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         cp=round(cp, 4),
         tip_speed_ratio=round(tsr, 3),
         efficiency_percent=round(cp * 100.0, 2),
+        effective_blade_mass_kg=round(effective_blade_mass, 4),
+        blade_planform_area_m2=round(blade_planform_area, 4),
+        material_density_kg_m3=round(material_density, 2),
         design_score=design_score(
-            inputs=inputs,
+            inputs=inputs.model_copy(update={"blade_mass_kg": effective_blade_mass}),
             cp=cp,
             tip_speed_ratio=tsr,
-            material_durability=material.durability_factor,
+            material_durability=material_durability,
         ),
         generator_rpm=round(generator.generator_rpm, 2),
         open_circuit_voltage_v=round(generator.open_circuit_voltage_v, 4),

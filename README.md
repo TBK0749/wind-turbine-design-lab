@@ -140,6 +140,11 @@ Cp limit, airfoil multiplier, mechanical loss, startup/cogging torque, and
 generator capping. Leave these controls at their defaults for normal student
 comparisons, and record any custom settings with measured test results.
 
+The **Blade physical** panel supports custom material properties. Users can
+override material density, roughness, and durability, then either enter blade
+mass manually or estimate blade mass from material density, blade thickness,
+and blade planform area.
+
 ## Roadmap
 
 - v0.2.0: save and compare multiple designs

@@ -40,3 +40,14 @@ def test_advanced_calibration_controls_are_available() -> None:
     assert any("Advanced calibration" in expander.label for expander in app.expander)
     assert any("Use airfoil correction" in checkbox.label for checkbox in app.checkbox)
     assert any("Startup/cogging torque" in number.label for number in app.number_input)
+
+
+def test_custom_material_controls_are_available() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    assert not app.exception
+    assert any("Use custom material properties" in checkbox.label for checkbox in app.checkbox)
+    assert any("Estimate blade mass from density" in checkbox.label for checkbox in app.checkbox)
+    assert any("Material density" in number.label for number in app.number_input)
+    assert any(metric.label == "Blade mass" for metric in app.metric)

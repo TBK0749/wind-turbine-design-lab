@@ -120,6 +120,36 @@ When any calibration value or toggle differs from the classroom default, the app
 shows a custom-calibration warning. Record these settings with every experiment
 because results with different toggles are not directly comparable.
 
+## Material and blade mass model
+
+The **Blade physical** panel supports preset materials and custom material
+properties. Presets provide density, surface roughness, and durability values
+for classroom comparison. When **Use custom material properties** is enabled,
+the user can override:
+
+- Material density in kg/m³.
+- Material roughness factor.
+- Material durability factor.
+
+By default, the model uses the manually entered **Mass per blade** value. When
+**Estimate blade mass from density** is enabled, one blade's mass is estimated
+from its top-view area, thickness, and material density:
+
+```text
+blade mass ≈ blade planform area × blade thickness × material density
+```
+
+For simple root/tip geometry, blade planform area is approximated as:
+
+```text
+area ≈ (rotor radius - hub radius) × average(root chord, tip chord)
+```
+
+For section-table geometry, the app sums trapezoids between adjacent blade
+stations. This is still an educational estimate: it does not include glue,
+fasteners, spars, hubs, leading-edge reinforcement, or actual 3D airfoil volume.
+If the real blade can be weighed, manual mass is usually more reliable.
+
 The supplied 50 cm competition preset uses:
 
 | Position (cm) | Chord (cm) | Twist (deg) |
