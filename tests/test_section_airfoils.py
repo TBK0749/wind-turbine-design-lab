@@ -3,6 +3,7 @@ import pytest
 from app.components.input_panel import _competition_section_frame
 from windlab.blade_geometry import competition_50cm_sections
 from windlab.models import BladeSection, SimulationInput
+from windlab.section_airfoils import get_section_airfoil
 from windlab.simulator import simulate
 
 
@@ -24,6 +25,16 @@ def test_section_table_frame_exposes_airfoil_columns() -> None:
     assert "Airfoil" in frame.columns
     assert "Airfoil role / purpose" in frame.columns
     assert frame.loc[0, "Airfoil"] == "NACA 4418"
+
+
+def test_naca_airfoil_metadata_is_student_readable() -> None:
+    airfoil = get_section_airfoil("NACA 4418")
+
+    assert airfoil.camber_percent == pytest.approx(4.0)
+    assert airfoil.camber_position_percent == pytest.approx(40.0)
+    assert airfoil.thickness_percent == pytest.approx(18.0)
+    assert airfoil.best_zone == "Root"
+    assert "18% thick" in airfoil.plain_language_summary
 
 
 def test_hub_can_cover_inner_fabrication_section_without_validation_error() -> None:

@@ -10,7 +10,11 @@ class SectionAirfoil:
     name: str
     family: str
     role: str
+    best_zone: str
+    plain_language_summary: str
     thickness_percent: float | None = None
+    camber_percent: float | None = None
+    camber_position_percent: float | None = None
 
 
 SECTION_AIRFOILS: dict[str, SectionAirfoil] = {
@@ -18,64 +22,112 @@ SECTION_AIRFOILS: dict[str, SectionAirfoil] = {
         name="NACA 4418",
         family="High-lift airfoil",
         role=("Root strength and startup torque: thick 18% section for stiffness near the hub."),
+        best_zone="Root",
+        plain_language_summary="4% camber at 40% chord, 18% thick; strong root and startup torque.",
         thickness_percent=18.0,
+        camber_percent=4.0,
+        camber_position_percent=40.0,
     ),
     "NACA 4415": SectionAirfoil(
         name="NACA 4415",
         family="High-lift airfoil",
         role="Transition section: reduces thickness while keeping strong cambered lift.",
+        best_zone="Root / Mid",
+        plain_language_summary=(
+            "4% camber at 40% chord, 15% thick; transition from root to lift zone."
+        ),
         thickness_percent=15.0,
+        camber_percent=4.0,
+        camber_position_percent=40.0,
     ),
     "NACA 4412": SectionAirfoil(
         name="NACA 4412",
         family="High-lift airfoil",
         role="Primary lift section: cambered profile for strong classroom-scale lift.",
+        best_zone="Mid",
+        plain_language_summary="4% camber at 40% chord, 12% thick; main lift-producing section.",
         thickness_percent=12.0,
+        camber_percent=4.0,
+        camber_position_percent=40.0,
     ),
     "NACA 2415": SectionAirfoil(
         name="NACA 2415",
         family="Cambered plate",
         role="Durable mid-span cambered section with moderate thickness.",
+        best_zone="Mid",
+        plain_language_summary=(
+            "2% camber at 40% chord, 15% thick; moderate lift with extra thickness."
+        ),
         thickness_percent=15.0,
+        camber_percent=2.0,
+        camber_position_percent=40.0,
     ),
     "NACA 2412": SectionAirfoil(
         name="NACA 2412",
         family="Cambered plate",
         role="Fast outer-blade section: thinner cambered profile to reduce drag and Tip vortex.",
+        best_zone="Tip",
+        plain_language_summary=(
+            "2% camber at 40% chord, 12% thick; good outer-blade low-drag option."
+        ),
         thickness_percent=12.0,
+        camber_percent=2.0,
+        camber_position_percent=40.0,
     ),
     "NACA 0018": SectionAirfoil(
         name="NACA 0018",
         family="Symmetric airfoil",
         role="Thick symmetric root option for strength when camber is not desired.",
+        best_zone="Root",
+        plain_language_summary="0% camber, 18% thick; strong but needs pitch angle to make lift.",
         thickness_percent=18.0,
+        camber_percent=0.0,
+        camber_position_percent=0.0,
     ),
     "NACA 0015": SectionAirfoil(
         name="NACA 0015",
         family="Symmetric airfoil",
         role="Balanced symmetric transition option with moderate thickness.",
+        best_zone="Root / Mid",
+        plain_language_summary="0% camber, 15% thick; predictable symmetric transition section.",
         thickness_percent=15.0,
+        camber_percent=0.0,
+        camber_position_percent=0.0,
     ),
     "NACA 0012": SectionAirfoil(
         name="NACA 0012",
         family="Symmetric airfoil",
         role="Predictable symmetric outer section that needs positive pitch for lift.",
+        best_zone="Tip",
+        plain_language_summary=(
+            "0% camber, 12% thick; low-camber outer section that relies on pitch."
+        ),
         thickness_percent=12.0,
+        camber_percent=0.0,
+        camber_position_percent=0.0,
     ),
     "Clark Y": SectionAirfoil(
         name="Clark Y",
         family="Cambered plate",
         role="Flat-bottom cambered section, easy to fabricate and align.",
+        best_zone="Mid",
+        plain_language_summary="Flat-bottom cambered airfoil; easy to build and align by hand.",
     ),
     "Selig S1223": SectionAirfoil(
         name="Selig S1223",
         family="High-lift airfoil",
         role="Very high-lift low-speed option; useful for experiments but sensitive to stall.",
+        best_zone="Mid",
+        plain_language_summary=(
+            "High-lift low-speed airfoil; strong lift but can stall if overpitched."
+        ),
     ),
     "Flat plate": SectionAirfoil(
         name="Flat plate",
         family="Flat plate / Foam board",
         role="Simple build option with high drag but easy classroom fabrication.",
+        best_zone="Prototype",
+        plain_language_summary="Flat sheet; easiest to fabricate, but drag is high.",
     ),
 }
 

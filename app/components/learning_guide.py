@@ -159,6 +159,16 @@ def render_key_terms_glossary() -> None:
             "table mode, all station airfoils contribute to the estimate.",
         ),
         (
+            "Camber",
+            "How curved the airfoil is. More camber usually helps create lift at low speed, "
+            "but too much angle can still stall.",
+        ),
+        (
+            "Thickness",
+            "The airfoil thickness as a percentage of chord. A 4418 airfoil is about 18% "
+            "thick, while a 4412 airfoil is about 12% thick.",
+        ),
+        (
             "NACA 4418 / 4415 / 4412",
             "Cambered four-digit NACA airfoils used here for the root and main lift region. "
             "The final two digits describe approximate thickness as a percentage of chord.",

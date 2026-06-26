@@ -11,6 +11,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from app.components.airfoil_help import render_airfoil_help  # noqa: E402
 from app.components.blade_geometry import render_blade_geometry  # noqa: E402
 from app.components.charts import render_performance_charts  # noqa: E402
 from app.components.input_panel import render_input_panel  # noqa: E402
@@ -53,6 +54,7 @@ with design_tab:
     render_result_cards(simulation_result)
 
     render_blade_geometry(simulation_input)
+    render_airfoil_help()
 
     st.subheader("Airfoil result")
     render_airfoil_cards(simulation_result)

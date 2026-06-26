@@ -78,6 +78,8 @@ Clark Y, Selig S1223, or Flat plate. The simulator maps each named airfoil to
 one of the educational airfoil families, then blends all station airfoils with
 radial/chord weighting. Root sections retain a small startup/strength influence,
 mid-span sections dominate lift, and tip sections receive extra RPM/drag weight.
+The dashboard includes an **Airfoil Help** panel that decodes four-digit NACA
+names, for example `4418 = 4% camber, 40% camber position, 18% thickness`.
 The simulator estimates a representative angle of attack:
 
 ```text

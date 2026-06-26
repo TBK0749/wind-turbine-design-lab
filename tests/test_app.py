@@ -72,3 +72,14 @@ def test_global_airfoil_selector_is_hidden_in_section_table_mode() -> None:
         "Section table airfoils override the simple airfoil selector" in text.value
         for text in app.markdown
     )
+
+
+def test_airfoil_help_explains_naca_codes() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    assert not app.exception
+    assert any("Airfoil Help" in expander.label for expander in app.expander)
+    assert any("Airfoil is the blade cross-section" in text.value for text in app.markdown)
+    assert any("4418 = 4% camber" in text.value for text in app.markdown)
+    assert any("Best zone" in text.value for text in app.markdown)
