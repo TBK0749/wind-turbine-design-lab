@@ -86,6 +86,17 @@ def test_airfoil_help_explains_naca_codes() -> None:
     assert any("Best zone" in text.value for text in app.markdown)
 
 
+def test_airfoil_preview_and_design_comparison_render() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    assert not app.exception
+    assert any(section.value == "Airfoil profile preview" for section in app.subheader)
+    assert any(section.value == "Design comparison" for section in app.subheader)
+    assert any(button.label == "Save current design" for button in app.button)
+    assert any("Design name" in text_input.label for text_input in app.text_input)
+
+
 def test_bemt_lite_model_mode_is_visible() -> None:
     app_path = Path(__file__).parents[1] / "app" / "main.py"
     app = AppTest.from_file(str(app_path), default_timeout=15).run()
@@ -96,3 +107,11 @@ def test_bemt_lite_model_mode_is_visible() -> None:
     assert any(metric.label == "Spin-up factor" for metric in app.metric)
     assert any(metric.label == "Required start torque" for metric in app.metric)
     assert any("Use BEMT-lite section model" in checkbox.label for checkbox in app.checkbox)
+
+
+def test_design_sheet_export_button_is_visible() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    assert not app.exception
+    assert any("printable Markdown build report" in text.value for text in app.caption)

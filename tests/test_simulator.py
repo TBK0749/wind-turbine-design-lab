@@ -1,7 +1,8 @@
 import json
 
+from windlab.blade_geometry import competition_50cm_sections
 from windlab.models import SimulationInput
-from windlab.simulator import performance_curve, result_as_json, simulate
+from windlab.simulator import performance_curve, result_as_design_sheet, result_as_json, simulate
 
 
 def test_default_simulation_produces_positive_bounded_results() -> None:
@@ -53,3 +54,17 @@ def test_json_export_contains_inputs_and_results() -> None:
     assert payload["inputs"]["airfoil_type"] == "Flat plate / Foam board"
     assert payload["results"]["mechanical_power_w"] > 0
     assert payload["results"]["airfoil_lift_drag_ratio"] > 0
+
+
+def test_design_sheet_export_contains_build_table() -> None:
+    inputs = SimulationInput(
+        rotor_radius_m=0.45,
+        hub_radius_m=0.10,
+        blade_sections=competition_50cm_sections(),
+    )
+    sheet = result_as_design_sheet(inputs, simulate(inputs))
+
+    assert "# Wind Turbine Design Sheet" in sheet
+    assert "Competition power" in sheet
+    assert "| Section | Position (cm) | Chord (cm) | Twist (deg) | Airfoil | Role |" in sheet
+    assert "NACA 4418" in sheet

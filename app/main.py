@@ -12,8 +12,10 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.components.airfoil_help import render_airfoil_help  # noqa: E402
+from app.components.airfoil_preview import render_airfoil_preview  # noqa: E402
 from app.components.blade_geometry import render_blade_geometry  # noqa: E402
 from app.components.charts import render_performance_charts  # noqa: E402
+from app.components.design_compare import render_design_comparison  # noqa: E402
 from app.components.input_panel import render_input_panel  # noqa: E402
 from app.components.learning_guide import (  # noqa: E402
     render_key_terms_glossary,
@@ -27,6 +29,7 @@ from app.components.result_cards import (  # noqa: E402
 from windlab.simulator import (  # noqa: E402
     performance_curve,
     result_as_csv,
+    result_as_design_sheet,
     result_as_json,
     simulate,
 )
@@ -54,6 +57,7 @@ with design_tab:
     render_result_cards(simulation_result)
 
     render_blade_geometry(simulation_input)
+    render_airfoil_preview(simulation_input)
     render_airfoil_help()
 
     st.subheader("Airfoil result")
@@ -86,6 +90,13 @@ with design_tab:
     with right:
         st.subheader("Export this run")
         st.download_button(
+            "Download design sheet",
+            result_as_design_sheet(simulation_input, simulation_result),
+            file_name="wind_turbine_design_sheet.md",
+            mime="text/markdown",
+            width="stretch",
+        )
+        st.download_button(
             "Download CSV",
             result_as_csv(simulation_input, simulation_result),
             file_name="wind_turbine_result.csv",
@@ -99,6 +110,9 @@ with design_tab:
             mime="application/json",
             width="stretch",
         )
+        st.caption("Download design sheet exports a printable Markdown build report.")
+
+    render_design_comparison(simulation_input, simulation_result)
 
     with st.expander("Model details"):
         st.write(

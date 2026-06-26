@@ -21,3 +21,11 @@ def test_readme_contains_local_installation_guide() -> None:
     assert "git pull" in readme
     assert "Run the app locally" in readme
     assert "Do not click Deploy" in readme
+
+
+def test_installation_doc_uses_real_github_url() -> None:
+    install_doc = Path("docs/installation.md").read_text()
+
+    assert "https://github.com/TBK0749/wind-turbine-design-lab.git" in install_doc
+    assert "<repository-url>" not in install_doc
+    assert "git pull" in install_doc
