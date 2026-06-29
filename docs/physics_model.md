@@ -230,3 +230,11 @@ inflow. These require measured calibration data, BEMT, or higher-fidelity
 models.
 
 See `docs/paper_model_notes.md` for the current paper-backed reliability notes.
+
+## Validation status
+
+The simulator is checked against selected values from the supplied small-wind
+turbine papers in `docs/model_validation_report.md`. Rows marked `runnable` or
+`range_check` can be used for model-error discussion. Rows marked
+`reference_only` document useful paper results but are not used for calibration
+until matching geometry and generator/load details are available.

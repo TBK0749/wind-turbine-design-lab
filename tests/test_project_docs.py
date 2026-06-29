@@ -38,3 +38,13 @@ def test_paper_model_notes_document_supplied_papers() -> None:
     assert "Low Reynolds" in paper_notes
     assert "Prandtl" in paper_notes
     assert "COMPARATIVE ANALYSIS OF SMALL-SCALE WIND TURBINE.pdf" in paper_notes
+
+
+def test_docs_link_to_model_validation_report() -> None:
+    readme = Path("README.md").read_text()
+    physics_doc = Path("docs/physics_model.md").read_text()
+    validation_report = Path("docs/model_validation_report.md")
+
+    assert "docs/model_validation_report.md" in readme
+    assert "docs/model_validation_report.md" in physics_doc
+    assert validation_report.exists()

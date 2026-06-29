@@ -145,6 +145,11 @@ Prandtl-style root/tip loss. See `docs/physics_model.md` for assumptions and
 limitations, and `docs/paper_model_notes.md` for the first paper-backed
 reliability pass.
 
+The current paper-validation status is tracked in
+[`docs/model_validation_report.md`](docs/model_validation_report.md). The report
+compares selected paper benchmarks with the simulator and clearly marks which
+rows are runnable, broad range checks, or reference-only values.
+
 The app also includes a collapsed **Advanced calibration** panel for teachers
 and competition teams. It can tune uncertain constants such as air viscosity,
 Cp limit, airfoil multiplier, mechanical loss, startup/cogging torque, and
