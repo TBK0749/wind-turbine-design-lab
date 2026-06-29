@@ -203,6 +203,7 @@ def has_custom_calibration(inputs: SimulationInput) -> bool:
             not inputs.use_generator_power_cap,
             not inputs.use_practical_cp_limit,
             not inputs.use_reynolds_correction,
+            not inputs.use_prandtl_loss,
             not inputs.use_startup_torque_loss,
             not inputs.use_bemt_lite_section_model,
         )
@@ -348,6 +349,7 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
     bemt_section_count = 0
     bemt_mean_relative_wind_speed = 0.0
     bemt_mean_angle_of_attack = angle_of_attack
+    bemt_mean_prandtl_loss_factor = 1.0
     bemt_warnings: tuple[str, ...] = ()
 
     if inputs.blade_sections and inputs.use_bemt_lite_section_model:
@@ -360,8 +362,9 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
             use_reynolds_correction=inputs.use_reynolds_correction,
             practical_cp_limit=inputs.practical_cp_limit,
             use_practical_cp_limit=inputs.use_practical_cp_limit,
+            use_prandtl_loss=inputs.use_prandtl_loss,
         )
-        section_airfoil_drive_factor = max(0.65, min(1.0, effective_airfoil_efficiency))
+        section_airfoil_drive_factor = max(0.45, min(1.0, effective_airfoil_efficiency))
         mechanical_power = bemt.mechanical_power_w * section_airfoil_drive_factor
         torque = bemt.torque_n_m * section_airfoil_drive_factor
         cp = bemt.cp * section_airfoil_drive_factor
@@ -369,6 +372,7 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         bemt_section_count = bemt.section_count
         bemt_mean_relative_wind_speed = bemt.mean_relative_wind_speed_m_s
         bemt_mean_angle_of_attack = bemt.mean_angle_of_attack_deg
+        bemt_mean_prandtl_loss_factor = bemt.mean_prandtl_loss_factor
         bemt_warnings = bemt.warnings
 
     rotor_inertia = estimate_rotor_inertia_kg_m2(inputs, effective_blade_mass)
@@ -455,6 +459,7 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         bemt_section_count=bemt_section_count,
         bemt_mean_relative_wind_speed_m_s=round(bemt_mean_relative_wind_speed, 3),
         bemt_mean_angle_of_attack_deg=round(bemt_mean_angle_of_attack, 3),
+        bemt_mean_prandtl_loss_factor=round(bemt_mean_prandtl_loss_factor, 3),
         rotor_inertia_kg_m2=round(rotor_inertia, 5),
         spinup_factor_percent=round(spinup_factor * 100.0, 2),
         required_startup_torque_n_m=round(required_startup_torque, 4),

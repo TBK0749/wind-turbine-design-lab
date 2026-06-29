@@ -68,6 +68,7 @@ class SimulationInput(BaseModel):
     use_generator_power_cap: bool = True
     use_practical_cp_limit: bool = True
     use_reynolds_correction: bool = True
+    use_prandtl_loss: bool = True
     use_startup_torque_loss: bool = True
     use_bemt_lite_section_model: bool = True
 
@@ -114,6 +115,7 @@ class SimulationResult(BaseModel):
     bemt_section_count: int
     bemt_mean_relative_wind_speed_m_s: float
     bemt_mean_angle_of_attack_deg: float
+    bemt_mean_prandtl_loss_factor: float
     rotor_inertia_kg_m2: float
     spinup_factor_percent: float
     required_startup_torque_n_m: float

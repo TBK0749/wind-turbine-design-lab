@@ -71,7 +71,7 @@ def test_section_airfoils_override_global_airfoil_family() -> None:
     )
 
     assert result.representative_airfoil_family != "Flat plate / Foam board"
-    assert result.airfoil_efficiency_factor > 0.70
+    assert result.airfoil_efficiency_factor > 0.50
 
 
 def _with_section_airfoil(section_index: int, airfoil_name: str) -> tuple[BladeSection, ...]:

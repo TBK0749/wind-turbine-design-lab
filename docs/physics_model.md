@@ -72,10 +72,11 @@ bounded, and Cp is kept below practical and Betz limits.
 
 BEMT-lite is closer to standard blade design thinking than a single whole-blade
 Cp estimate because chord, twist, radius, and station airfoil choices can change
-the result section by section. It is still not full QBlade/BEMT. It does not
-iteratively solve axial/tangential induction factors, 3D stall delay, tip-loss
-corrections, wake rotation, turbulence, tower blockage, structural bending, or
-manufacturing error.
+the result section by section. It also applies an optional Prandtl-style
+root/tip loss factor so the model is less optimistic near the hub and blade
+tip. It is still not full QBlade/BEMT. It does not iteratively solve
+axial/tangential induction factors, 3D stall delay, wake rotation, turbulence,
+tower blockage, structural bending, or manufacturing error.
 
 Simple root/tip mode still uses an educational bounded Cp approximation and an
 estimated tip-speed ratio. This mode is useful for quick comparison before
@@ -109,8 +110,11 @@ Re = ρ × V × chord / μ
 where μ defaults to 1.81×10⁻⁵ kg/(m·s). Each airfoil family has classroom
 constants for lift slope, drag, stall angle, and an efficiency bias. The model
 produces estimated lift coefficient, drag coefficient, lift/drag ratio, airfoil
-efficiency factor, and stall risk. The efficiency factor adjusts Cp and slightly
-adjusts TSR/RPM so draggy airfoils can reduce the generator mW score.
+efficiency factor, and stall risk. Supplied small-turbine papers show that low
+Reynolds number can reduce lift and increase drag strongly, especially around
+`10^4` to `10^5`, so the model applies a low-Reynolds penalty when Reynolds
+correction is enabled. The efficiency factor adjusts Cp and slightly adjusts
+TSR/RPM so draggy airfoils can reduce the generator mW score.
 
 ## Advanced calibration controls
 
@@ -133,6 +137,8 @@ Model toggles:
 - BEMT-lite section model: when enabled, section-table geometry calculates
   torque by summing local lift/drag forces along the blade. When disabled, the
   simulator falls back to the simpler representative Cp model.
+- Prandtl tip/root loss: when enabled, BEMT-lite reduces section torque near the
+  blade root and tip using a Prandtl-style loss factor.
 - Airfoil correction: when disabled, airfoil efficiency is treated as 1.0.
 - Material roughness: when disabled, material roughness is treated as 1.0.
 - Generator power cap: when disabled, the resistive-load electrical estimate is
@@ -222,3 +228,5 @@ model does not use measured airfoil polar files and does not calculate blade
 element induction, structural stress, fatigue, control systems, or turbulent
 inflow. These require measured calibration data, BEMT, or higher-fidelity
 models.
+
+See `docs/paper_model_notes.md` for the current paper-backed reliability notes.

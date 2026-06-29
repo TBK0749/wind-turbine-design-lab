@@ -76,6 +76,35 @@ class AirfoilPerformance:
     warnings: tuple[str, ...] = ()
 
 
+def _reynolds_adjustment(reynolds_number: float) -> tuple[float, float, float, tuple[str, ...]]:
+    """Return lift, drag, and efficiency multipliers for low-Reynolds operation."""
+
+    if reynolds_number < 30_000.0:
+        return (
+            0.65,
+            1.90,
+            0.62,
+            ("Very low Reynolds number: expect reduced lift and much higher drag.",),
+        )
+    if reynolds_number < 80_000.0:
+        return (
+            0.78,
+            1.45,
+            0.78,
+            ("Low Reynolds number: small blades may lose lift and see extra drag.",),
+        )
+    if reynolds_number < 150_000.0:
+        return (
+            0.90,
+            1.20,
+            0.90,
+            ("Moderate-low Reynolds number: airfoil performance is still penalized.",),
+        )
+    if reynolds_number > 500_000.0:
+        return (1.03, 0.95, 1.03, ())
+    return (1.0, 1.0, 1.0, ())
+
+
 def estimate_airfoil_performance(
     airfoil_type: str,
     *,
@@ -98,19 +127,17 @@ def estimate_airfoil_performance(
     if stall_risk:
         lift *= stall_factor
 
-    reynolds_factor = 1.0
-    warnings: list[str] = []
-    if reynolds_number < 80_000.0:
-        reynolds_factor = 0.88
-        warnings.append("Low Reynolds number: small blades may see extra drag.")
-    elif reynolds_number > 500_000.0:
-        reynolds_factor = 1.03
+    lift_re_factor, drag_re_factor, efficiency_re_factor, reynolds_warnings = _reynolds_adjustment(
+        reynolds_number
+    )
+    lift *= lift_re_factor
+    warnings: list[str] = list(reynolds_warnings)
 
     drag = (
         definition.base_drag_coefficient
         + definition.induced_drag_factor * lift**2
         + 0.002 * abs(angle_of_attack_deg)
-    )
+    ) * drag_re_factor
     if stall_risk:
         drag *= 1.0 + 0.10 * excess_angle
         warnings.append("High angle of attack: likely stall and extra drag.")
@@ -119,7 +146,7 @@ def estimate_airfoil_performance(
     efficiency_factor = definition.efficiency_bias * (
         0.72 + min(lift_drag_ratio, 25.0) / 25.0 * 0.35
     )
-    efficiency_factor *= reynolds_factor * stall_factor
+    efficiency_factor *= efficiency_re_factor * stall_factor
     efficiency_factor = max(0.45, min(1.12, efficiency_factor))
 
     return AirfoilPerformance(

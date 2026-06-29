@@ -29,3 +29,12 @@ def test_installation_doc_uses_real_github_url() -> None:
     assert "https://github.com/TBK0749/wind-turbine-design-lab.git" in install_doc
     assert "<repository-url>" not in install_doc
     assert "git pull" in install_doc
+
+
+def test_paper_model_notes_document_supplied_papers() -> None:
+    paper_notes = Path("docs/paper_model_notes.md").read_text()
+
+    assert "SWEPT" in paper_notes
+    assert "Low Reynolds" in paper_notes
+    assert "Prandtl" in paper_notes
+    assert "COMPARATIVE ANALYSIS OF SMALL-SCALE WIND TURBINE.pdf" in paper_notes

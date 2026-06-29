@@ -51,3 +51,17 @@ def test_simulator_uses_bemt_lite_for_section_table_by_default() -> None:
     assert result.model_mode == "BEMT-lite"
     assert result.bemt_section_count == pytest.approx(5)
     assert result.bemt_mean_relative_wind_speed_m_s > 8.0
+    assert 0.0 < result.bemt_mean_prandtl_loss_factor < 1.0
+
+
+def test_prandtl_loss_reduces_bemt_lite_power() -> None:
+    inputs = SimulationInput(
+        rotor_radius_m=0.45,
+        hub_radius_m=0.10,
+        blade_sections=competition_50cm_sections(),
+    )
+    with_loss = calculate_bemt_lite(inputs, tip_speed_ratio=6.5, use_prandtl_loss=True)
+    without_loss = calculate_bemt_lite(inputs, tip_speed_ratio=6.5, use_prandtl_loss=False)
+
+    assert with_loss.mean_prandtl_loss_factor < 1.0
+    assert with_loss.mechanical_power_w < without_loss.mechanical_power_w

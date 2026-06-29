@@ -117,9 +117,11 @@ def test_bemt_lite_model_mode_is_visible() -> None:
     assert not app.exception
     assert any(metric.label == "Model mode" for metric in app.metric)
     assert any(metric.label == "BEMT sections" for metric in app.metric)
+    assert any(metric.label == "BEMT loss factor" for metric in app.metric)
     assert any(metric.label == "Spin-up factor" for metric in app.metric)
     assert any(metric.label == "Required start torque" for metric in app.metric)
     assert any("Use BEMT-lite section model" in checkbox.label for checkbox in app.checkbox)
+    assert any("Use Prandtl tip/root loss" in checkbox.label for checkbox in app.checkbox)
 
 
 def test_design_sheet_export_button_is_visible() -> None:

@@ -45,6 +45,24 @@ def test_high_angle_warns_about_stall_and_penalizes_efficiency() -> None:
     assert any("stall" in warning.lower() for warning in stalled.warnings)
 
 
+def test_low_reynolds_number_reduces_lift_and_increases_drag() -> None:
+    moderate_re = estimate_airfoil_performance(
+        "High-lift airfoil",
+        angle_of_attack_deg=6.0,
+        reynolds_number=200_000.0,
+    )
+    very_low_re = estimate_airfoil_performance(
+        "High-lift airfoil",
+        angle_of_attack_deg=6.0,
+        reynolds_number=25_000.0,
+    )
+
+    assert very_low_re.lift_coefficient < moderate_re.lift_coefficient
+    assert very_low_re.drag_coefficient > moderate_re.drag_coefficient
+    assert very_low_re.efficiency_factor < moderate_re.efficiency_factor
+    assert any("Reynolds" in warning for warning in very_low_re.warnings)
+
+
 def test_unknown_airfoil_is_rejected() -> None:
     with pytest.raises(ValueError, match="Airfoil"):
         estimate_airfoil_performance(

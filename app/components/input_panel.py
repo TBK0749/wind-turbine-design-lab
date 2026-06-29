@@ -254,6 +254,7 @@ def render_input_panel() -> SimulationInput:
         use_generator_power_cap = st.checkbox("Use generator power cap", value=True)
         use_practical_cp_limit = st.checkbox("Use practical Cp limit", value=True)
         use_reynolds_correction = st.checkbox("Use Reynolds correction", value=True)
+        use_prandtl_loss = st.checkbox("Use Prandtl tip/root loss", value=True)
         use_startup_torque_loss = st.checkbox("Use startup torque loss", value=True)
         use_bemt_lite = st.checkbox("Use BEMT-lite section model", value=True)
 
@@ -295,6 +296,7 @@ def render_input_panel() -> SimulationInput:
         use_generator_power_cap=use_generator_power_cap,
         use_practical_cp_limit=use_practical_cp_limit,
         use_reynolds_correction=use_reynolds_correction,
+        use_prandtl_loss=use_prandtl_loss,
         use_startup_torque_loss=use_startup_torque_loss,
         use_bemt_lite_section_model=use_bemt_lite,
     )

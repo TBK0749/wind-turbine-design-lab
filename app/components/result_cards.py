@@ -21,14 +21,18 @@ def render_result_cards(result: SimulationResult) -> None:
     second[3].metric("Rotor area", f"{result.rotor_area_m2:.2f} m²")
     second[4].metric("Blade mass", f"{result.effective_blade_mass_kg:.3f} kg")
 
-    third = st.columns(4)
+    third = st.columns(5)
     third[0].metric("Model mode", result.model_mode)
     third[1].metric("BEMT sections", f"{result.bemt_section_count}")
     third[2].metric(
+        "BEMT loss factor",
+        f"{result.bemt_mean_prandtl_loss_factor:.3f}",
+    )
+    third[3].metric(
         "Spin-up factor",
         f"{result.spinup_factor_percent:,.1f}%",
     )
-    third[3].metric(
+    third[4].metric(
         "Required start torque",
         f"{result.required_startup_torque_n_m:,.3f} N·m",
     )
