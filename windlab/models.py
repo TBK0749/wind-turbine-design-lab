@@ -66,6 +66,7 @@ class SimulationInput(BaseModel):
     use_airfoil_correction: bool = True
     use_material_roughness: bool = True
     use_generator_power_cap: bool = True
+    use_generator_load_feedback: bool = True
     use_practical_cp_limit: bool = True
     use_reynolds_correction: bool = True
     use_prandtl_loss: bool = True
@@ -121,6 +122,8 @@ class SimulationResult(BaseModel):
     required_startup_torque_n_m: float
     design_score: float
     generator_rpm: float
+    unloaded_generator_rpm: float
+    generator_load_factor: float
     open_circuit_voltage_v: float
     load_voltage_v: float
     load_current_ma: float

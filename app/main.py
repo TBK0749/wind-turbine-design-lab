@@ -128,8 +128,10 @@ with design_tab:
             "Surface finish affects aerodynamic drag. "
             "Generator voltage scales with RPM; current is estimated from generator and "
             "load resistance. Electrical output cannot exceed the available mechanical "
-            "power after generator efficiency. Cp, TSR, and airfoil values remain "
-            "educational approximations, not a replacement for full QBlade/BEMT validation."
+            "power after generator efficiency; heavy electrical loading can reduce the "
+            "displayed operating RPM through a first-order load feedback factor. Cp, TSR, "
+            "and airfoil values remain educational approximations, not a replacement for "
+            "full QBlade/BEMT validation."
         )
 
 with calibration_tab:

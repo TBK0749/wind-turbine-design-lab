@@ -201,6 +201,7 @@ def has_custom_calibration(inputs: SimulationInput) -> bool:
             not inputs.use_airfoil_correction,
             not inputs.use_material_roughness,
             not inputs.use_generator_power_cap,
+            not inputs.use_generator_load_feedback,
             not inputs.use_practical_cp_limit,
             not inputs.use_reynolds_correction,
             not inputs.use_prandtl_loss,
@@ -428,7 +429,13 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
         gear_ratio=inputs.gear_ratio,
         trial_duration_s=inputs.trial_duration_s,
         cap_output_by_mechanical_power=inputs.use_generator_power_cap,
+        apply_load_feedback=inputs.use_generator_load_feedback,
     )
+    if inputs.use_generator_load_feedback and generator.generator_load_factor < 0.999:
+        rpm *= generator.generator_load_factor
+        omega *= generator.generator_load_factor
+        tsr = omega * inputs.rotor_radius_m / inputs.wind_speed_m_s
+        torque = torque_from_power(mechanical_power, omega)
 
     if has_custom_calibration(inputs):
         warnings.append(
@@ -470,6 +477,8 @@ def simulate(inputs: SimulationInput) -> SimulationResult:
             material_durability=material_durability,
         ),
         generator_rpm=round(generator.generator_rpm, 2),
+        unloaded_generator_rpm=round(generator.unloaded_generator_rpm, 2),
+        generator_load_factor=round(generator.generator_load_factor, 4),
         open_circuit_voltage_v=round(generator.open_circuit_voltage_v, 4),
         load_voltage_v=round(generator.load_voltage_v, 4),
         load_current_ma=round(generator.load_current_ma, 4),

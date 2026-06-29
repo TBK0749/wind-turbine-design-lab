@@ -104,6 +104,8 @@ def _prediction_map_from_result(result: SimulationResult) -> dict[str, float]:
         "electrical_power_w": result.electrical_power_mw / 1000.0,
         "torque_n_m": result.torque_n_m,
         "tip_speed_ratio": result.tip_speed_ratio,
+        "generator_load_factor": result.generator_load_factor,
+        "unloaded_generator_rpm": result.unloaded_generator_rpm,
         "airfoil_reynolds_number": result.airfoil_reynolds_number,
         "bemt_mean_prandtl_loss_factor": result.bemt_mean_prandtl_loss_factor,
     }

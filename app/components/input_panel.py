@@ -252,6 +252,7 @@ def render_input_panel() -> SimulationInput:
         use_airfoil_correction = st.checkbox("Use airfoil correction", value=True)
         use_material_roughness = st.checkbox("Use material roughness", value=True)
         use_generator_power_cap = st.checkbox("Use generator power cap", value=True)
+        use_generator_load_feedback = st.checkbox("Use generator load feedback", value=True)
         use_practical_cp_limit = st.checkbox("Use practical Cp limit", value=True)
         use_reynolds_correction = st.checkbox("Use Reynolds correction", value=True)
         use_prandtl_loss = st.checkbox("Use Prandtl tip/root loss", value=True)
@@ -294,6 +295,7 @@ def render_input_panel() -> SimulationInput:
         use_airfoil_correction=use_airfoil_correction,
         use_material_roughness=use_material_roughness,
         use_generator_power_cap=use_generator_power_cap,
+        use_generator_load_feedback=use_generator_load_feedback,
         use_practical_cp_limit=use_practical_cp_limit,
         use_reynolds_correction=use_reynolds_correction,
         use_prandtl_loss=use_prandtl_loss,

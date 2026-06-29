@@ -47,13 +47,14 @@ def render_competition_cards(result: SimulationResult) -> None:
     first[2].metric("Load current", f"{result.load_current_ma:,.3f} mA")
     first[3].metric("Trial energy", f"{result.electrical_energy_mj:,.1f} mJ")
 
-    second = st.columns(3)
+    second = st.columns(4)
     second[0].metric("Generator RPM", f"{result.generator_rpm:,.1f}")
     second[1].metric("Open-circuit voltage", f"{result.open_circuit_voltage_v:,.3f} V")
     second[2].metric(
         "Mechanical → load",
         f"{result.conversion_efficiency_percent:,.2f}%",
     )
+    second[3].metric("Generator load factor", f"{result.generator_load_factor:,.3f}")
 
 
 def render_airfoil_cards(result: SimulationResult) -> None:

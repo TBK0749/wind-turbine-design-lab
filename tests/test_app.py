@@ -52,6 +52,7 @@ def test_advanced_calibration_controls_are_available() -> None:
     assert not app.exception
     assert any("Advanced calibration" in expander.label for expander in app.expander)
     assert any("Use airfoil correction" in checkbox.label for checkbox in app.checkbox)
+    assert any("Use generator load feedback" in checkbox.label for checkbox in app.checkbox)
     assert any("Startup/cogging torque" in number.label for number in app.number_input)
 
 
@@ -118,6 +119,7 @@ def test_bemt_lite_model_mode_is_visible() -> None:
     assert any(metric.label == "Model mode" for metric in app.metric)
     assert any(metric.label == "BEMT sections" for metric in app.metric)
     assert any(metric.label == "BEMT loss factor" for metric in app.metric)
+    assert any(metric.label == "Generator load factor" for metric in app.metric)
     assert any(metric.label == "Spin-up factor" for metric in app.metric)
     assert any(metric.label == "Required start torque" for metric in app.metric)
     assert any("Use BEMT-lite section model" in checkbox.label for checkbox in app.checkbox)

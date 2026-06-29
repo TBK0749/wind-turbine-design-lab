@@ -154,8 +154,9 @@ rows are runnable, broad range checks, or reference-only values.
 The app also includes a collapsed **Advanced calibration** panel for teachers
 and competition teams. It can tune uncertain constants such as air viscosity,
 Cp limit, airfoil multiplier, mechanical loss, startup/cogging torque, and
-generator capping. Leave these controls at their defaults for normal student
-comparisons, and record any custom settings with measured test results.
+generator capping/load feedback. Leave these controls at their defaults for
+normal student comparisons, and record any custom settings with measured test
+results.
 
 The **Blade physical** panel supports custom material properties. Users can
 override material density, roughness, and durability, then either enter blade

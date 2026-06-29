@@ -34,6 +34,25 @@ def test_airfoil_choice_changes_competition_power() -> None:
     assert high_lift.electrical_power_mw > flat.electrical_power_mw
 
 
+def test_generator_load_feedback_reduces_simulated_rpm_under_heavy_load() -> None:
+    base = SimulationInput(
+        wind_speed_m_s=8.0,
+        generator_volts_per_1000_rpm=100.0,
+        generator_internal_resistance_ohm=0.0,
+        load_resistance_ohm=1.0,
+        generator_efficiency_percent=50.0,
+    )
+
+    with_feedback = simulate(base)
+    without_feedback = simulate(base.model_copy(update={"use_generator_load_feedback": False}))
+
+    assert with_feedback.generator_load_factor < 1.0
+    assert with_feedback.rpm < without_feedback.rpm
+    assert with_feedback.tip_speed_ratio < without_feedback.tip_speed_ratio
+    assert with_feedback.generator_rpm < without_feedback.generator_rpm
+    assert with_feedback.electrical_power_mw <= (with_feedback.mechanical_power_w * 500.0 + 0.2)
+
+
 def test_overpitched_airfoil_adds_stall_warning() -> None:
     result = simulate(
         SimulationInput(

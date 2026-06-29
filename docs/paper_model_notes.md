@@ -98,7 +98,8 @@ The current model still does not perform:
 - 3D stall delay;
 - wake rotation;
 - turbulence or tunnel blockage correction;
-- two-way generator load feedback on rotor RPM;
+- full two-way generator/rotor coupling that recalculates the aerodynamic power
+  curve at the loaded operating TSR;
 - structural deflection or print-quality error modeling.
 
 These are candidates for future Phase 2/Phase 3 work after measured classroom

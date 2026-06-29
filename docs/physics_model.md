@@ -51,7 +51,18 @@ Pelectrical = Vload × I
 ```
 
 By default, the electrical result is capped at mechanical power multiplied by
-the stated generator efficiency. Competition power is displayed in milliwatts:
+the stated generator efficiency. The app also applies a simple generator-load
+feedback factor. If the ideal resistive-load demand is larger than the
+available electrical power, the generator operating RPM is reduced by:
+
+```text
+load factor = √(available electrical power / ideal resistive-load power)
+loaded generator RPM = unloaded generator RPM × load factor
+```
+
+This keeps the estimated mW inside the available mechanical-power budget and
+shows when an aggressive electrical load would pull the rotor away from its
+unloaded speed. Competition power is displayed in milliwatts:
 
 ```text
 mW = volts × milliamps
@@ -147,6 +158,8 @@ Model toggles:
 - Material roughness: when disabled, material roughness is treated as 1.0.
 - Generator power cap: when disabled, the resistive-load electrical estimate is
   not capped by available mechanical power.
+- Generator load feedback: when disabled, the generator can still be power-capped,
+  but the displayed operating RPM is not reduced by heavy electrical loading.
 - Practical Cp limit: when disabled, Cp is still capped by the Betz limit.
 - Reynolds correction: when disabled, the airfoil model uses a neutral reference
   Reynolds number instead of applying low-Reynolds penalties.
@@ -227,12 +240,15 @@ values for simpler classroom comparison. Simple root/tip geometry still uses
 the empirical Cp path in the dashboard because a reliable BEMT calculation
 needs measured radial chord and twist distribution.
 
-The generator model is a simplified DC equivalent. It does not yet solve the
-full two-way effect of electrical loading on rotor RPM, startup torque,
-nonlinear motor losses, rectifier losses, or battery charging. The aerodynamic
-model does not yet use external measured airfoil polar files and does not
-calculate structural stress, fatigue, control systems, or turbulent inflow.
-These require measured calibration data, full BEMT, or higher-fidelity models.
+The generator model is a simplified DC equivalent. It now includes a first-order
+load feedback factor when electrical demand exceeds available converted
+mechanical power, but it still does not recalculate the full aerodynamic power
+curve at the new operating TSR. It also does not model nonlinear motor losses,
+rectifier losses, battery charging, or detailed startup dynamics. The
+aerodynamic model does not yet use external measured airfoil polar files and
+does not calculate structural stress, fatigue, control systems, or turbulent
+inflow. These require measured calibration data, full BEMT, or higher-fidelity
+models.
 
 See `docs/paper_model_notes.md` for the current paper-backed reliability notes.
 

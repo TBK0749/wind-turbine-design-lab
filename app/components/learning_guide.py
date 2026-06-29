@@ -278,7 +278,8 @@ def render_key_terms_glossary() -> None:
         (
             "Model toggle",
             "A switch that enables or disables one simplified correction, such as airfoil "
-            "efficiency, hub-area loss, Reynolds correction, or generator power capping.",
+            "efficiency, hub-area loss, Reynolds correction, generator power capping, or "
+            "generator load feedback.",
         ),
         (
             "BEMT-lite",
