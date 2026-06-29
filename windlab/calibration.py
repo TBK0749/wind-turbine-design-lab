@@ -4,6 +4,8 @@ import csv
 import io
 from dataclasses import dataclass
 
+from windlab.models import SimulationInput
+
 
 @dataclass(frozen=True, slots=True)
 class ExperimentMeasurement:
@@ -26,6 +28,31 @@ class CalibrationSummary:
     power_error_percent: float
     rpm_correction_factor: float
     power_correction_factor: float
+
+
+VALIDATION_BENCHMARK_FIELDNAMES = [
+    "case_id",
+    "design_name",
+    "wind_speed_m_s",
+    "air_density_kg_m3",
+    "rotor_radius_m",
+    "hub_radius_m",
+    "blade_count",
+    "blade_mass_kg",
+    "material",
+    "surface_finish",
+    "trial_duration_s",
+    "generator_volts_per_1000_rpm",
+    "generator_internal_resistance_ohm",
+    "load_resistance_ohm",
+    "generator_efficiency_percent",
+    "gear_ratio",
+    "use_competition_sections",
+    "measured_rpm",
+    "measured_power_mw",
+    "tolerance_percent",
+    "notes",
+]
 
 
 def percent_error(predicted: float, measured: float) -> float:
@@ -115,6 +142,61 @@ def measurements_as_csv(measurements: list[ExperimentMeasurement]) -> str:
     empty_measurement = ExperimentMeasurement("", 0, 0, 0, 0, 0)
     fieldnames = list(rows[0]) if rows else list(measurement_row(empty_measurement))
     writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+    return output.getvalue()
+
+
+def _slug(value: str) -> str:
+    """Create a stable CSV case id from a design name."""
+
+    lowered = value.strip().lower()
+    characters = [character if character.isalnum() else "_" for character in lowered]
+    return "_".join(part for part in "".join(characters).split("_") if part) or "prototype"
+
+
+def measurements_as_validation_benchmark_csv(
+    measurements: list[ExperimentMeasurement],
+    inputs: SimulationInput,
+    *,
+    use_competition_sections: bool | None = None,
+    tolerance_percent: float = 10.0,
+) -> str:
+    """Export measurements in the format loaded by model validation reports."""
+
+    should_use_competition_sections = (
+        bool(inputs.blade_sections)
+        if use_competition_sections is None
+        else use_competition_sections
+    )
+    rows = [
+        {
+            "case_id": _slug(measurement.design_name),
+            "design_name": measurement.design_name,
+            "wind_speed_m_s": measurement.wind_speed_m_s,
+            "air_density_kg_m3": inputs.air_density_kg_m3,
+            "rotor_radius_m": inputs.rotor_radius_m,
+            "hub_radius_m": inputs.hub_radius_m,
+            "blade_count": inputs.blade_count,
+            "blade_mass_kg": inputs.blade_mass_kg,
+            "material": inputs.material,
+            "surface_finish": inputs.surface_finish,
+            "trial_duration_s": inputs.trial_duration_s,
+            "generator_volts_per_1000_rpm": inputs.generator_volts_per_1000_rpm,
+            "generator_internal_resistance_ohm": inputs.generator_internal_resistance_ohm,
+            "load_resistance_ohm": inputs.load_resistance_ohm,
+            "generator_efficiency_percent": inputs.generator_efficiency_percent,
+            "gear_ratio": inputs.gear_ratio,
+            "use_competition_sections": ("true" if should_use_competition_sections else "false"),
+            "measured_rpm": measurement.measured_rpm,
+            "measured_power_mw": measurement.measured_power_mw,
+            "tolerance_percent": tolerance_percent,
+            "notes": measurement.notes,
+        }
+        for measurement in measurements
+    ]
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=VALIDATION_BENCHMARK_FIELDNAMES)
     writer.writeheader()
     writer.writerows(rows)
     return output.getvalue()

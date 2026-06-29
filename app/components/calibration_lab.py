@@ -9,6 +9,7 @@ from windlab.calibration import (
     calibration_markdown_report,
     measurement_row,
     measurements_as_csv,
+    measurements_as_validation_benchmark_csv,
 )
 from windlab.models import SimulationInput, SimulationResult
 
@@ -91,12 +92,20 @@ def render_calibration_lab(inputs: SimulationInput, result: SimulationResult) ->
     else:
         st.caption("No measured trials yet. Add a prototype test after 3D printing.")
 
-    export_left, export_right = st.columns(2)
+    export_left, export_middle, export_right = st.columns(3)
     with export_left:
         st.download_button(
             "Download calibration CSV",
             measurements_as_csv(measurements),
             file_name="wind_turbine_calibration_log.csv",
+            mime="text/csv",
+            width="stretch",
+        )
+    with export_middle:
+        st.download_button(
+            "Download validation benchmark CSV",
+            measurements_as_validation_benchmark_csv(measurements, inputs),
+            file_name="classroom_measured_benchmarks.csv",
             mime="text/csv",
             width="stretch",
         )

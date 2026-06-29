@@ -35,4 +35,4 @@ The report separates strict comparisons from reference-only paper values. Refere
 - Wind tunnel speed at the rotor plane.
 - Measured RPM, voltage, current, load resistance, and trial duration.
 - Blade mass, surface finish, and generator internal resistance.
-- To add real classroom benchmarks, copy `data/classroom_measured_benchmarks.example.csv` to `data/classroom_measured_benchmarks.csv`, fill one row per prototype, then regenerate this report.
+- To add real classroom benchmarks, export `classroom_measured_benchmarks.csv` from the Calibration tab or copy `data/classroom_measured_benchmarks.example.csv`, place the filled file at `data/classroom_measured_benchmarks.csv`, then regenerate this report.
