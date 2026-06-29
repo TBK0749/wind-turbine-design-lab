@@ -135,3 +135,34 @@ def test_unknown_airfoil_is_rejected() -> None:
             angle_of_attack_deg=6.0,
             reynolds_number=150_000.0,
         )
+
+
+def test_sg6043_is_bounded_but_better_than_flat_plate_at_low_re() -> None:
+    sg6043 = estimate_airfoil_performance(
+        "High-lift airfoil",
+        airfoil_name="SG6043",
+        angle_of_attack_deg=6.0,
+        reynolds_number=150_000.0,
+    )
+    flat = estimate_airfoil_performance(
+        "Flat plate / Foam board",
+        airfoil_name="Flat plate",
+        angle_of_attack_deg=6.0,
+        reynolds_number=150_000.0,
+    )
+
+    assert sg6043.lift_drag_ratio > flat.lift_drag_ratio
+    assert sg6043.efficiency_factor <= 1.12
+    assert sg6043.drag_coefficient > 0.0
+
+
+def test_nrel_airfoil_warning_does_not_create_unbounded_efficiency() -> None:
+    nrel = estimate_airfoil_performance(
+        "High-lift airfoil",
+        airfoil_name="NREL S823",
+        angle_of_attack_deg=6.0,
+        reynolds_number=25_000.0,
+    )
+
+    assert nrel.efficiency_factor <= 1.12
+    assert any("recommended Reynolds range" in warning for warning in nrel.warnings)

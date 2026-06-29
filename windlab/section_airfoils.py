@@ -15,6 +15,12 @@ class SectionAirfoil:
     thickness_percent: float | None = None
     camber_percent: float | None = None
     camber_position_percent: float | None = None
+    camber_description: str = "Representative educational shape."
+    recommended_reynolds_min: float = 30_000.0
+    recommended_reynolds_max: float = 500_000.0
+    confidence: str = "Estimated"
+    source_note: str = "Educational approximation; not a measured field calibration."
+    zone_warnings: tuple[str, ...] = ()
 
 
 SECTION_AIRFOILS: dict[str, SectionAirfoil] = {
@@ -106,20 +112,151 @@ SECTION_AIRFOILS: dict[str, SectionAirfoil] = {
         camber_percent=0.0,
         camber_position_percent=0.0,
     ),
+    "SG6040": SectionAirfoil(
+        name="SG6040",
+        family="High-lift airfoil",
+        role="Small-wind root option: thicker SG-series section for startup torque and root strength.",
+        best_zone="Root / Mid",
+        plain_language_summary=(
+            "Selig/Giguere small-wind airfoil; useful near the root where torque and stiffness matter."
+        ),
+        thickness_percent=16.0,
+        camber_description="Cambered SG-series small-wind profile.",
+        recommended_reynolds_min=80_000.0,
+        recommended_reynolds_max=500_000.0,
+        confidence="Medium",
+        source_note="Giguere & Selig small horizontal-axis wind-turbine airfoil family.",
+        zone_warnings=(
+            "Near the tip, SG6040 may add unnecessary thickness and drag compared with thinner options.",
+        ),
+    ),
+    "SG6042": SectionAirfoil(
+        name="SG6042",
+        family="High-lift airfoil",
+        role="Small-wind transition option: balances low-Re lift with moderate drag.",
+        best_zone="Root / Mid",
+        plain_language_summary=(
+            "SG-series small-wind transition airfoil; good bridge from strong root to lift-producing mid blade."
+        ),
+        thickness_percent=10.0,
+        camber_description="Cambered low-Re small-wind profile.",
+        recommended_reynolds_min=80_000.0,
+        recommended_reynolds_max=500_000.0,
+        confidence="Medium",
+        source_note="Giguere & Selig small horizontal-axis wind-turbine airfoil family.",
+    ),
+    "SG6043": SectionAirfoil(
+        name="SG6043",
+        family="High-lift airfoil",
+        role="Small-wind primary lift option: high lift/drag candidate for low-Re mid blade sections.",
+        best_zone="Mid",
+        plain_language_summary=(
+            "SG-series small-wind airfoil; useful in the main lift region when Reynolds number is in range."
+        ),
+        thickness_percent=10.0,
+        camber_percent=5.1,
+        camber_position_percent=53.3,
+        camber_description="Cambered low-Re high-lift profile.",
+        recommended_reynolds_min=80_000.0,
+        recommended_reynolds_max=500_000.0,
+        confidence="Medium",
+        source_note=(
+            "Giguere & Selig small horizontal-axis wind-turbine airfoil family; "
+            "UIUC coordinates list SG6043 geometry."
+        ),
+        zone_warnings=(
+            "At the blade tip, SG6043 can be useful but may be more stall-sensitive than thinner tip choices.",
+        ),
+    ),
+    "S1223": SectionAirfoil(
+        name="S1223",
+        family="High-lift airfoil",
+        role="Very high-lift low-speed option; useful for experiments but sensitive to stall and drag.",
+        best_zone="Mid",
+        plain_language_summary=(
+            "High-lift low-Re airfoil; strong lift for startup experiments, but not automatically best for high RPM."
+        ),
+        thickness_percent=12.1,
+        camber_description="Very cambered high-lift low-Re profile.",
+        recommended_reynolds_min=80_000.0,
+        recommended_reynolds_max=500_000.0,
+        confidence="Medium",
+        source_note="Selig high-lift low-Reynolds airfoil literature and UIUC coordinate database.",
+        zone_warnings=(
+            "Near the tip, S1223 can create extra drag or stall if pitch/twist is too high.",
+        ),
+    ),
+    "E387": SectionAirfoil(
+        name="E387",
+        family="Cambered plate",
+        role="Low-Re reference option: efficient comparison airfoil when surface finish is reasonably smooth.",
+        best_zone="Mid / Tip",
+        plain_language_summary=(
+            "Eppler low-Re reference airfoil; useful for comparing smoother low-drag designs."
+        ),
+        thickness_percent=9.1,
+        camber_description="Moderately cambered low-Re profile.",
+        recommended_reynolds_min=60_000.0,
+        recommended_reynolds_max=460_000.0,
+        confidence="Medium",
+        source_note=(
+            "NASA low-Reynolds experimental literature reports E387 tests from "
+            "about Re 60,000 to 460,000."
+        ),
+        zone_warnings=(
+            "At the root, E387 may be too thin for a stiff 3D-printed blade without reinforcement.",
+        ),
+    ),
     "Clark Y": SectionAirfoil(
         name="Clark Y",
         family="Cambered plate",
         role="Flat-bottom cambered section, easy to fabricate and align.",
         best_zone="Mid",
         plain_language_summary="Flat-bottom cambered airfoil; easy to build and align by hand.",
+        thickness_percent=11.7,
+        camber_description="Traditional flat-bottom cambered profile.",
+        recommended_reynolds_min=80_000.0,
+        recommended_reynolds_max=500_000.0,
+        confidence="Estimated",
+        source_note="Traditional classroom-friendly reference shape; modeled conservatively here.",
     ),
-    "Selig S1223": SectionAirfoil(
-        name="Selig S1223",
+    "NREL S822": SectionAirfoil(
+        name="NREL S822",
         family="High-lift airfoil",
-        role="Very high-lift low-speed option; useful for experiments but sensitive to stall.",
-        best_zone="Mid",
+        role="Thick wind-turbine reference section; useful for comparison but designed for larger rotors.",
+        best_zone="Root / Mid",
         plain_language_summary=(
-            "High-lift low-speed airfoil; strong lift but can stall if overpitched."
+            "NREL thick wind-turbine airfoil for larger stall-regulated rotors; "
+            "use cautiously on small classroom blades."
+        ),
+        thickness_percent=16.0,
+        camber_description="Thick wind-turbine profile with roughness-insensitive design goals.",
+        recommended_reynolds_min=200_000.0,
+        recommended_reynolds_max=1_000_000.0,
+        confidence="Medium",
+        source_note="NREL S822/S823 report for 3-10 m stall-regulated horizontal-axis wind turbines.",
+        zone_warnings=(
+            "For a small classroom rotor, NREL S822 may operate below its intended Reynolds range.",
+        ),
+    ),
+    "NREL S823": SectionAirfoil(
+        name="NREL S823",
+        family="High-lift airfoil",
+        role="Thick wind-turbine reference section; strong comparison option for larger low-speed rotors.",
+        best_zone="Root / Mid",
+        plain_language_summary=(
+            "NREL thick wind-turbine airfoil; educational comparison option, "
+            "not a guaranteed best small-rotor choice."
+        ),
+        thickness_percent=21.0,
+        camber_description="Very thick wind-turbine profile with roughness-insensitive design goals.",
+        recommended_reynolds_min=200_000.0,
+        recommended_reynolds_max=1_000_000.0,
+        confidence="Medium",
+        source_note="NREL S822/S823 report for 3-10 m stall-regulated horizontal-axis wind turbines.",
+        zone_warnings=(
+            "NREL S823 is very thick and can add drag or weight near the tip of a small classroom rotor.",
+            "For a small classroom rotor, NREL S823 may operate below its intended Reynolds range.",
         ),
     ),
     "Flat plate": SectionAirfoil(
@@ -131,6 +268,16 @@ SECTION_AIRFOILS: dict[str, SectionAirfoil] = {
     ),
 }
 
+SECTION_AIRFOIL_ALIASES: dict[str, str] = {
+    "Selig S1223": "S1223",
+}
+
+
+def _canonical_airfoil_name(name: str) -> str:
+    """Return the canonical catalog key for student or legacy airfoil names."""
+
+    return SECTION_AIRFOIL_ALIASES.get(name, name)
+
 
 def section_airfoil_options() -> list[str]:
     """Return airfoil names in student-facing order."""
@@ -141,8 +288,42 @@ def section_airfoil_options() -> list[str]:
 def get_section_airfoil(name: str) -> SectionAirfoil:
     """Return a section airfoil or raise a friendly error."""
 
+    canonical_name = _canonical_airfoil_name(name)
     try:
-        return SECTION_AIRFOILS[name]
+        return SECTION_AIRFOILS[canonical_name]
     except KeyError as exc:
         choices = ", ".join(SECTION_AIRFOILS)
         raise ValueError(f"Section airfoil must be one of: {choices}.") from exc
+
+
+def station_airfoil_warnings(name: str, *, station_fraction: float) -> tuple[str, ...]:
+    """Return non-blocking guidance for using an airfoil at a blade span station."""
+
+    airfoil = get_section_airfoil(name)
+    fraction = max(0.0, min(1.0, station_fraction))
+    warnings = list(airfoil.zone_warnings)
+
+    if (
+        fraction < 0.20
+        and airfoil.thickness_percent is not None
+        and airfoil.thickness_percent < 10.0
+    ):
+        warnings.append(
+            f"{airfoil.name} is thin for a root section; "
+            "consider reinforcement or a thicker root airfoil."
+        )
+    if (
+        fraction > 0.80
+        and airfoil.thickness_percent is not None
+        and airfoil.thickness_percent > 15.0
+    ):
+        warnings.append(
+            f"{airfoil.name} is thick for a fast tip section; "
+            "compare with thinner low-drag tip airfoils."
+        )
+    if fraction > 0.80 and airfoil.name == "S1223":
+        warnings.append(
+            "S1223 near the tip can produce useful lift, but drag and stall risk may limit RPM."
+        )
+
+    return tuple(dict.fromkeys(warnings))

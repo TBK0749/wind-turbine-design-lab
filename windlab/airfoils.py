@@ -132,8 +132,14 @@ _POLAR_SHAPES: dict[str, _PolarShape] = {
     "NACA 4412": _PolarShape(-3.0, 5.35, 1.28, 0.018, 0.035, 15.0, 1.00, 0.65, 0.95),
     "NACA 4415": _PolarShape(-3.1, 5.30, 1.26, 0.021, 0.037, 14.5, 1.08, 0.68, 0.98),
     "NACA 4418": _PolarShape(-3.2, 5.20, 1.22, 0.024, 0.040, 14.0, 1.18, 0.72, 1.05),
+    "SG6040": _PolarShape(-3.6, 5.25, 1.30, 0.023, 0.038, 14.0, 1.10, 0.68, 0.94),
+    "SG6042": _PolarShape(-3.4, 5.35, 1.36, 0.020, 0.035, 14.5, 1.02, 0.60, 0.88),
+    "SG6043": _PolarShape(-3.8, 5.40, 1.42, 0.019, 0.034, 15.0, 0.98, 0.56, 0.86),
+    "S1223": _PolarShape(-5.0, 5.45, 1.55, 0.026, 0.045, 13.5, 1.12, 0.52, 0.88),
+    "E387": _PolarShape(-2.1, 5.20, 1.18, 0.017, 0.032, 12.5, 0.96, 0.85, 0.88),
     "Clark Y": _PolarShape(-2.2, 5.15, 1.15, 0.020, 0.036, 14.0, 1.02, 0.78, 0.80),
-    "Selig S1223": _PolarShape(-5.0, 5.45, 1.55, 0.026, 0.045, 13.5, 1.12, 0.52, 0.88),
+    "NREL S822": _PolarShape(-2.6, 5.15, 1.22, 0.023, 0.037, 13.0, 1.15, 0.86, 0.95),
+    "NREL S823": _PolarShape(-2.8, 5.20, 1.25, 0.025, 0.039, 13.0, 1.20, 0.88, 0.98),
 }
 
 _AIRFOIL_POLAR_ALIASES: dict[str, str] = {
@@ -141,6 +147,10 @@ _AIRFOIL_POLAR_ALIASES: dict[str, str] = {
     "Cambered plate": "NACA 2412",
     "Symmetric airfoil": "NACA 0012",
     "High-lift airfoil": "NACA 4412",
+}
+
+_SECTION_POLAR_ALIASES: dict[str, str] = {
+    "Selig S1223": "S1223",
 }
 
 
@@ -263,10 +273,11 @@ def _resolve_polar_name(airfoil_type: str, airfoil_name: str | None) -> str:
     """Resolve a family or section airfoil to the internal polar table name."""
 
     if airfoil_name is not None:
-        if airfoil_name not in AIRFOIL_POLAR_TABLES:
+        polar_name = _SECTION_POLAR_ALIASES.get(airfoil_name, airfoil_name)
+        if polar_name not in AIRFOIL_POLAR_TABLES:
             choices = ", ".join(AIRFOIL_POLAR_TABLES)
             raise ValueError(f"Airfoil polar must be one of: {choices}.")
-        return airfoil_name
+        return polar_name
     return _AIRFOIL_POLAR_ALIASES[airfoil_type]
 
 
@@ -278,11 +289,12 @@ def lookup_airfoil_polar(
 ) -> AirfoilPolarEstimate:
     """Interpolate a simplified CL/CD polar table by AoA and Reynolds number."""
 
-    if airfoil_name not in AIRFOIL_POLAR_TABLES:
+    polar_name = _SECTION_POLAR_ALIASES.get(airfoil_name, airfoil_name)
+    if polar_name not in AIRFOIL_POLAR_TABLES:
         choices = ", ".join(AIRFOIL_POLAR_TABLES)
         raise ValueError(f"Airfoil polar must be one of: {choices}.")
 
-    table = AIRFOIL_POLAR_TABLES[airfoil_name]
+    table = AIRFOIL_POLAR_TABLES[polar_name]
     reynolds_rows = sorted({point.reynolds_number for point in table})
     lower_re = reynolds_rows[0]
     upper_re = reynolds_rows[-1]
@@ -318,7 +330,7 @@ def lookup_airfoil_polar(
         )
 
     return AirfoilPolarEstimate(
-        airfoil_name=airfoil_name,
+        airfoil_name=polar_name,
         lift_coefficient=round(lift, 3),
         drag_coefficient=round(drag, 4),
     )
@@ -456,6 +468,42 @@ def _reynolds_adjustment(
     )
 
 
+def _catalog_reynolds_warnings(
+    airfoil_name: str,
+    reynolds_number: float,
+) -> tuple[str, ...]:
+    """Return warnings when a section airfoil is outside its recommended range."""
+
+    try:
+        from windlab.section_airfoils import get_section_airfoil
+
+        airfoil = get_section_airfoil(airfoil_name)
+    except ValueError:
+        return ()
+
+    warnings: list[str] = []
+    if reynolds_number < airfoil.recommended_reynolds_min:
+        warnings.append(
+            f"{airfoil.name} is below its recommended Reynolds range "
+            f"({airfoil.recommended_reynolds_min:,.0f}-{airfoil.recommended_reynolds_max:,.0f}); "
+            "treat CL/CD as lower-confidence."
+        )
+    elif reynolds_number > airfoil.recommended_reynolds_max:
+        warnings.append(
+            f"{airfoil.name} is above its recommended Reynolds range "
+            f"({airfoil.recommended_reynolds_min:,.0f}-{airfoil.recommended_reynolds_max:,.0f}); "
+            "treat CL/CD as lower-confidence."
+        )
+
+    if airfoil.name.startswith("NREL S") and reynolds_number < 100_000.0:
+        warnings.append(
+            f"{airfoil.name} was designed for larger wind-turbine rotors; "
+            "on a small classroom rotor, use it as a comparison, not a guaranteed best choice."
+        )
+
+    return tuple(warnings)
+
+
 def estimate_airfoil_performance(
     airfoil_type: str,
     *,
@@ -484,6 +532,7 @@ def estimate_airfoil_performance(
     drag = polar.drag_coefficient
     _, _, _, reynolds_warnings = _reynolds_adjustment(airfoil_type, reynolds_number)
     warnings.extend(reynolds_warnings)
+    warnings.extend(_catalog_reynolds_warnings(polar_name, reynolds_number))
     if stall_risk:
         warnings.append("High angle of attack: likely stall and extra drag.")
 

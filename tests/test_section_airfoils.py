@@ -3,7 +3,7 @@ import pytest
 from app.components.input_panel import _competition_section_frame
 from windlab.blade_geometry import competition_50cm_sections
 from windlab.models import BladeSection, SimulationInput
-from windlab.section_airfoils import get_section_airfoil
+from windlab.section_airfoils import get_section_airfoil, section_airfoil_options
 from windlab.simulator import simulate
 
 
@@ -119,3 +119,15 @@ def test_tip_section_airfoil_affects_rpm() -> None:
 
     assert draggy_tip.rpm < baseline.rpm
     assert draggy_tip.electrical_power_mw < baseline.electrical_power_mw
+
+
+def test_source_backed_airfoil_names_are_student_facing() -> None:
+    options = section_airfoil_options()
+
+    assert "SG6040" in options
+    assert "SG6042" in options
+    assert "SG6043" in options
+    assert "S1223" in options
+    assert "Selig S1223" not in options
+    assert "NREL S822" in options
+    assert "NREL S823" in options
