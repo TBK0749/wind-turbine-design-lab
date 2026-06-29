@@ -1,0 +1,158 @@
+[
+  {
+    "id": "swept_final_cp_4ms",
+    "paper": "Small-scale Wind Energy Portable Turbine (SWEPT).pdf",
+    "source_detail": "SWEPT final 40 cm rotor reports Cp around 0.31 to 0.34 near the 4.0 m/s design condition.",
+    "role": "range_check",
+    "confidence": "medium",
+    "notes": "Rotor diameter and wind speed are known. Detailed chord/twist/polar data must be checked again before using this as a strict calibration target.",
+    "inputs": {
+      "wind_speed_m_s": 4.0,
+      "air_density_kg_m3": 1.225,
+      "rotor_radius_m": 0.20,
+      "hub_radius_m": 0.03,
+      "blade_count": 3,
+      "root_chord_m": 0.045,
+      "tip_chord_m": 0.012,
+      "pitch_angle_deg": 2.0,
+      "twist_angle_deg": 18.0,
+      "airfoil_type": "High-lift airfoil",
+      "blade_mass_kg": 0.05,
+      "surface_finish": "Smooth molded",
+      "use_bemt_lite_section_model": false
+    },
+    "targets": [
+      {
+        "metric": "cp",
+        "min": 0.31,
+        "max": 0.34,
+        "unit": "dimensionless"
+      }
+    ]
+  },
+  {
+    "id": "swept_electrical_power_reference",
+    "paper": "Small-scale Wind Energy Portable Turbine (SWEPT).pdf",
+    "source_detail": "SWEPT reports about 1 W electrical output at 4.0 m/s and about 2.2 W at 5.5 m/s.",
+    "role": "reference_only",
+    "confidence": "medium",
+    "notes": "Electrical output depends on generator/load details that are not equivalent to the classroom generator model.",
+    "inputs": {},
+    "targets": [
+      {
+        "metric": "electrical_power_w",
+        "min": 1.0,
+        "max": 1.0,
+        "unit": "W at 4.0 m/s"
+      },
+      {
+        "metric": "electrical_power_w",
+        "min": 2.2,
+        "max": 2.2,
+        "unit": "W at 5.5 m/s"
+      }
+    ]
+  },
+  {
+    "id": "conf4_naca4412_power_10ms_range",
+    "paper": "Conf4_Experimental Study of Small-Scale Wind Turbine Rotors_EEAE_2020.pdf",
+    "source_detail": "3D printed ABS rotors using NACA 4412, about 524-620 mm diameter, tested at 10 m/s; reported rotor power ranges roughly 22 W to 48 W depending rotor configuration.",
+    "role": "range_check",
+    "confidence": "low",
+    "notes": "This is a broad family check because exact tested pitch/geometry variants are not yet encoded one by one.",
+    "inputs": {
+      "wind_speed_m_s": 10.0,
+      "air_density_kg_m3": 1.225,
+      "rotor_radius_m": 0.31,
+      "hub_radius_m": 0.05,
+      "blade_count": 3,
+      "root_chord_m": 0.08,
+      "tip_chord_m": 0.04,
+      "pitch_angle_deg": 5.0,
+      "twist_angle_deg": 8.0,
+      "airfoil_type": "High-lift airfoil",
+      "blade_mass_kg": 0.18,
+      "material": "Plastic",
+      "surface_finish": "Raw 3D print",
+      "use_bemt_lite_section_model": false
+    },
+    "targets": [
+      {
+        "metric": "mechanical_power_w",
+        "min": 22.0,
+        "max": 48.0,
+        "unit": "W"
+      }
+    ]
+  },
+  {
+    "id": "riej_no_diffuser_cp_reference",
+    "paper": "riej.2022.364299.1341.pdf",
+    "source_detail": "No-diffuser small rotor reported Cp around 0.09 at 3-4 m/s and up to about 0.22 at 7 m/s; diffuser cases were higher.",
+    "role": "reference_only",
+    "confidence": "medium",
+    "notes": "Useful low-speed Cp range, but diffuser/no-diffuser geometry and test setup are not equivalent to the classroom rotor.",
+    "inputs": {},
+    "targets": [
+      {
+        "metric": "cp",
+        "min": 0.09,
+        "max": 0.22,
+        "unit": "dimensionless"
+      }
+    ]
+  },
+  {
+    "id": "optimization_large_rotor_cp_5_5ms",
+    "paper": "Small_Wind_Turbine_Blade_Design_and_Optimization.pdf",
+    "source_detail": "BEM/QBlade-style optimization example: 3 blades, 4 m diameter, hub about 0.2 m, design TSR 6.5, Cp about 0.445 at 5.5 m/s.",
+    "role": "range_check",
+    "confidence": "medium",
+    "notes": "Larger and cleaner than the classroom rotor. This checks whether the simulator can reach a plausible higher Cp when scale and surface assumptions improve.",
+    "inputs": {
+      "wind_speed_m_s": 5.5,
+      "air_density_kg_m3": 1.225,
+      "rotor_radius_m": 2.0,
+      "hub_radius_m": 0.10,
+      "blade_count": 3,
+      "root_chord_m": 0.22,
+      "tip_chord_m": 0.06,
+      "pitch_angle_deg": 2.0,
+      "twist_angle_deg": 14.0,
+      "airfoil_type": "High-lift airfoil",
+      "blade_mass_kg": 1.2,
+      "surface_finish": "Smooth molded",
+      "practical_cp_limit": 0.50,
+      "use_bemt_lite_section_model": false
+    },
+    "targets": [
+      {
+        "metric": "cp",
+        "min": 0.42,
+        "max": 0.47,
+        "unit": "dimensionless"
+      }
+    ]
+  },
+  {
+    "id": "classroom_competition_baseline_3_6ms",
+    "paper": "Internal classroom target",
+    "source_detail": "Competition wind tunnel target is 3.6 m/s. This row records the current model prediction for the default classroom blade and is not a paper validation case.",
+    "role": "runnable",
+    "confidence": "high",
+    "notes": "Use this as the local project baseline. Add measured tunnel data here after the first prototype test.",
+    "inputs": {
+      "wind_speed_m_s": 3.6,
+      "air_density_kg_m3": 1.225,
+      "rotor_radius_m": 0.45,
+      "hub_radius_m": 0.10,
+      "blade_count": 3,
+      "blade_mass_kg": 0.10,
+      "material": "Plastic",
+      "surface_finish": "Raw 3D print",
+      "trial_duration_s": 60.0
+    },
+    "use_competition_sections": true,
+    "targets": []
+  }
+]
