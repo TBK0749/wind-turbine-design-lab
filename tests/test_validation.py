@@ -2,10 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from windlab.validation import BenchmarkTarget, compare_prediction_to_target
-from windlab.validation import load_benchmark_cases
-from windlab.validation import render_validation_report
-from windlab.validation import run_benchmark_case
+from windlab.validation import (
+    BenchmarkTarget,
+    compare_prediction_to_target,
+    load_benchmark_cases,
+    render_validation_report,
+    run_benchmark_case,
+)
 
 
 def test_load_benchmark_cases_contains_supplied_papers() -> None:
@@ -37,7 +40,9 @@ def test_compare_prediction_outside_target_range_uses_nearest_bound() -> None:
 
 
 def test_reference_only_case_is_not_simulated() -> None:
-    case = next(case for case in load_benchmark_cases() if case.id == "riej_no_diffuser_cp_reference")
+    case = next(
+        case for case in load_benchmark_cases() if case.id == "riej_no_diffuser_cp_reference"
+    )
 
     result = run_benchmark_case(case)
 
@@ -48,9 +53,7 @@ def test_reference_only_case_is_not_simulated() -> None:
 
 def test_runnable_case_produces_core_predictions() -> None:
     case = next(
-        case
-        for case in load_benchmark_cases()
-        if case.id == "classroom_competition_baseline_3_6ms"
+        case for case in load_benchmark_cases() if case.id == "classroom_competition_baseline_3_6ms"
     )
 
     result = run_benchmark_case(case)

@@ -12,7 +12,6 @@ from windlab.blade_geometry import competition_50cm_sections
 from windlab.models import SimulationInput, SimulationResult
 from windlab.simulator import simulate
 
-
 BenchmarkRole = Literal["runnable", "range_check", "reference_only"]
 BenchmarkConfidence = Literal["low", "medium", "high"]
 
@@ -61,7 +60,9 @@ class BenchmarkRunResult(BaseModel):
     comparisons: list[TargetComparison] = Field(default_factory=list)
 
 
-def load_benchmark_cases(path: Path = Path("data/validation_benchmarks.json")) -> list[BenchmarkCase]:
+def load_benchmark_cases(
+    path: Path = Path("data/validation_benchmarks.json"),
+) -> list[BenchmarkCase]:
     """Load benchmark cases from JSON."""
 
     raw_cases = json.loads(path.read_text())
