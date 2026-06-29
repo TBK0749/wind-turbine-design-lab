@@ -94,6 +94,14 @@ Model implication:
 - The section table remains the recommended workflow for printable blades.
 - Airfoil choice is now evaluated by station in BEMT-lite mode.
 
+### Source-backed airfoil expansion
+
+The app includes conservative SG-series, S1223, E387, Clark Y, and NREL S822/S823
+airfoil options. These entries are source-informed and bounded by the existing
+educational model; they are not raw measured polar imports. Use them to reduce
+bad design choices before fabrication, then calibrate with real 3D-print and
+wind-tunnel measurements.
+
 ## What is still not full engineering BEMT
 
 The current model still does not perform:

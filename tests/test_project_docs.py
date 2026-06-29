@@ -48,3 +48,14 @@ def test_docs_link_to_model_validation_report() -> None:
     assert "docs/model_validation_report.md" in readme
     assert "docs/model_validation_report.md" in physics_doc
     assert validation_report.exists()
+
+
+def test_physics_docs_describe_source_backed_airfoil_limits() -> None:
+    physics_doc = Path("docs/physics_model.md").read_text()
+    paper_notes = Path("docs/paper_model_notes.md").read_text()
+
+    assert "Conservative source-backed airfoils" in physics_doc
+    assert "SG6043" in physics_doc
+    assert "not certify exact measured power" in physics_doc
+    assert "Source-backed airfoil expansion" in paper_notes
+    assert "not raw measured polar imports" in paper_notes

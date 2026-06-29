@@ -102,12 +102,13 @@ The airfoil model is also simplified. In simple root/tip mode, users choose one
 classroom airfoil family: flat plate / foam board, cambered plate, symmetric
 airfoil, or high-lift airfoil. In section-table mode, each station can choose a
 specific airfoil such as NACA 4418, NACA 4415, NACA 4412, NACA 2412, NACA 0012,
-Clark Y, Selig S1223, or Flat plate. The simulator maps each named airfoil to
-one of the educational airfoil families. In BEMT-lite mode, that family is used
-directly at each blade segment. If BEMT-lite is disabled, the simulator falls
-back to a representative whole-blade airfoil blend with radial/chord weighting.
-Root sections retain a small startup/strength influence, mid-span sections
-dominate lift, and tip sections receive extra RPM/drag weight.
+SG6040, SG6042, SG6043, S1223, E387, Clark Y, NREL S822, NREL S823, or Flat
+plate. The simulator maps each named airfoil to one of the educational airfoil
+families. In BEMT-lite mode, that family is used directly at each blade segment.
+If BEMT-lite is disabled, the simulator falls back to a representative
+whole-blade airfoil blend with radial/chord weighting. Root sections retain a
+small startup/strength influence, mid-span sections dominate lift, and tip
+sections receive extra RPM/drag weight.
 The dashboard includes an **Airfoil Help** panel that decodes four-digit NACA
 names, for example `4418 = 4% camber, 40% camber position, 18% thickness`.
 The simulator estimates a representative angle of attack:
@@ -125,7 +126,8 @@ Re = ρ × V × chord / μ
 
 where μ defaults to 1.81×10⁻⁵ kg/(m·s). The model uses an internal educational
 CL/CD polar lookup table for the supplied airfoils, including NACA 4418, 4415,
-4412, 2412, 0012-family sections, Clark Y, Selig S1223, and Flat plate. It
+4412, 2412, 0012-family sections, SG6040, SG6042, SG6043, S1223, E387,
+Clark Y, NREL S822, NREL S823, and Flat plate. It
 interpolates those sample points by angle of attack and Reynolds number, then
 reports lift coefficient, drag coefficient, lift/drag ratio, airfoil efficiency
 factor, and stall risk. Supplied small-turbine papers show that low Reynolds
@@ -133,6 +135,19 @@ number can reduce lift and increase drag strongly, especially around `10^4` to
 `10^5`, so the table includes a very-low-Re row near `10^4` and stronger drag
 penalties for flat or rough sections. The efficiency factor adjusts Cp and
 slightly adjusts TSR/RPM so draggy airfoils can reduce the generator mW score.
+
+### Conservative source-backed airfoils
+
+The section-table selector includes additional non-NACA choices such as SG6040,
+SG6042, SG6043, S1223, E387, Clark Y, NREL S822, and NREL S823. These entries
+carry source notes, representative thickness, recommended Reynolds ranges, and
+confidence labels. They use bounded compact polar shapes rather than raw imported
+wind-tunnel polar files, so they should be used to compare trends, not certify exact measured power.
+
+If a selected airfoil operates outside its recommended Reynolds range, the
+simulator reports a warning and treats the result as lower confidence. This is
+especially important for NREL S822/S823, which are wind-turbine airfoils designed
+for larger rotors than the classroom competition model.
 
 ## Advanced calibration controls
 

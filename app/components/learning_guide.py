@@ -181,6 +181,33 @@ def render_key_terms_glossary() -> None:
             "sections to reduce drag while keeping useful lift.",
         ),
         (
+            "SG6040 / SG6042 / SG6043",
+            "Small-wind airfoils from the Selig/Giguere SG series. They are useful "
+            "comparison choices for low-Reynolds classroom rotors, especially around "
+            "the root and middle lift region.",
+        ),
+        (
+            "S1223",
+            "A very high-lift low-Reynolds airfoil. It can help startup experiments, "
+            "but high lift also means stall and drag must be watched carefully.",
+        ),
+        (
+            "E387",
+            "A classic low-Reynolds reference airfoil. It is useful for comparing smoother, "
+            "lower-drag sections but may need better fabrication quality than a flat plate.",
+        ),
+        (
+            "NREL S822 / S823",
+            "Thick wind-turbine airfoils designed for larger rotors. In this app they are "
+            "educational comparison options and may be outside the best Reynolds range for "
+            "small 3D-printed classroom blades.",
+        ),
+        (
+            "Airfoil confidence",
+            "A label showing how much source context the simulator has. It is not a promise "
+            "that the predicted mW will match a real tunnel test.",
+        ),
+        (
             "Chord",
             "The blade width at a measured station, from leading edge to trailing edge.",
         ),
