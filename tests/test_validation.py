@@ -105,6 +105,20 @@ def test_polar_model_moves_key_paper_benchmarks_closer_to_targets() -> None:
     assert conf4.comparisons[0].status == "within_range"
 
 
+def test_paper_range_checks_are_inside_current_targets() -> None:
+    cases = {case.id: case for case in load_benchmark_cases()}
+
+    range_check_ids = [
+        "swept_final_cp_4ms",
+        "conf4_naca4412_power_10ms_range",
+        "optimization_large_rotor_cp_5_5ms",
+    ]
+
+    for case_id in range_check_ids:
+        result = run_benchmark_case(cases[case_id])
+        assert [comparison.status for comparison in result.comparisons] == ["within_range"]
+
+
 def test_load_measured_classroom_benchmarks_from_csv(tmp_path: Path) -> None:
     measured_csv = tmp_path / "classroom_measured_benchmarks.csv"
     measured_csv.write_text(

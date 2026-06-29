@@ -93,7 +93,10 @@ or manufacturing error.
 
 Simple root/tip mode still uses an educational bounded Cp approximation and an
 estimated tip-speed ratio. This mode is useful for quick comparison before
-students have measured a full blade table.
+students have measured a full blade table. For larger, cleaner rotors, this
+empirical path applies a small scale-recovery factor so the model can reach the
+higher Cp range seen in larger BEM/QBlade-style paper examples without boosting
+rough 3D-printed classroom rotors.
 
 The airfoil model is also simplified. In simple root/tip mode, users choose one
 classroom airfoil family: flat plate / foam board, cambered plate, symmetric

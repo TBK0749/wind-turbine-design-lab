@@ -79,6 +79,9 @@ Model implication:
 
 - Keep the practical Cp cap configurable.
 - Treat paper values as calibration ranges, not as a single universal constant.
+- The empirical Cp path includes a small scale-recovery factor for larger,
+  cleaner rotors so paper-scale optimized examples can sit in range without
+  making rough classroom prints overly optimistic.
 
 ### 5. Geometry sensitivity matters before printing
 

@@ -74,6 +74,9 @@ def estimate_cp(
         + 0.05 * twist_factor
         + 0.05 * solidity_factor
     ) * roughness_factor
+    clean_surface_factor = max(0.0, min(1.0, (roughness_factor - 0.85) / 0.10))
+    scale_recovery_factor = max(0.0, min(1.0, (rotor_radius_m - 0.75) / 1.25))
+    cp *= 1.0 + 0.035 * clean_surface_factor * scale_recovery_factor
     limits = [BETZ_LIMIT - 1e-6]
     if use_practical_cp_limit:
         limits.append(practical_cp_limit)
