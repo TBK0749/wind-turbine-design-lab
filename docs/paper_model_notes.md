@@ -38,13 +38,14 @@ Model change:
 ### 2. Section losses near the root and tip should not be ignored
 
 The SWEPT blade-element code uses local radius, chord, tip-speed ratio, inflow
-angle, Reynolds number, and Prandtl-style tip/root loss factors. Full BEMT also
-solves axial and tangential induction factors iteratively, but the loss-factor
-step is useful even in a lighter classroom model.
+angle, Reynolds number, induction factors, and Prandtl-style tip/root loss
+factors. Full BEMT adds more robust convergence, high-induction handling,
+measured polar tables, and validation against test data.
 
 Model change:
 
-- BEMT-lite now includes an optional Prandtl-style tip/root loss factor.
+- BEMT-lite now includes damped axial/tangential induction estimates and an
+  optional Prandtl-style tip/root loss factor for measured section-table blades.
 - The result panel reports the mean BEMT loss factor so teachers can see when
   root and tip effects are reducing useful torque.
 
@@ -91,7 +92,7 @@ Model implication:
 
 The current model still does not perform:
 
-- iterative axial and tangential induction solving;
+- full high-induction and convergence corrections used by engineering BEMT;
 - external measured airfoil polar lookup tables;
 - post-stall or Viterna extrapolation;
 - 3D stall delay;

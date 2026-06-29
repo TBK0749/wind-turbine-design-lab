@@ -284,7 +284,8 @@ def render_key_terms_glossary() -> None:
             "BEMT-lite",
             "A simplified Blade Element Momentum Theory style model. It calculates lift "
             "and drag at blade sections using local chord, twist, airfoil, and relative "
-            "wind speed, but it does not solve full induction factors like QBlade.",
+            "wind speed with bounded induction-factor estimates, but it is still much "
+            "simpler than QBlade.",
         ),
         (
             "Full BEMT",

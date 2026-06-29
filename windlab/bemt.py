@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from math import acos, atan2, cos, degrees, exp, pi, radians, sin, sqrt
 
 from windlab.airfoils import estimate_airfoil_performance
-from windlab.models import SimulationInput
+from windlab.models import BladeSection, SimulationInput
 from windlab.physics import (
     BETZ_LIMIT,
     PRACTICAL_CP_LIMIT,
@@ -26,6 +26,8 @@ class BemtLiteResult:
     mean_relative_wind_speed_m_s: float
     mean_angle_of_attack_deg: float
     mean_prandtl_loss_factor: float
+    mean_axial_induction_factor: float
+    mean_tangential_induction_factor: float
     warnings: tuple[str, ...]
 
 
@@ -33,6 +35,48 @@ def _interpolate(start: float, end: float, fraction: float) -> float:
     """Linearly interpolate between two station values."""
 
     return start + (end - start) * fraction
+
+
+def _clamp(value: float, lower: float, upper: float) -> float:
+    """Clamp a value into a safe numerical range."""
+
+    return max(lower, min(upper, value))
+
+
+def _simple_airfoil_name(airfoil_type: str) -> str:
+    """Map whole-blade classroom airfoil families to section-airfoil names."""
+
+    return {
+        "Flat plate / Foam board": "Flat plate",
+        "Cambered plate": "NACA 2412",
+        "Symmetric airfoil": "NACA 0012",
+        "High-lift airfoil": "NACA 4412",
+    }[airfoil_type]
+
+
+def _bemt_sections(inputs: SimulationInput) -> tuple[BladeSection, ...]:
+    """Return measured sections or synthesize stations from root/tip inputs."""
+
+    if inputs.blade_sections:
+        return inputs.blade_sections
+
+    active_span = inputs.rotor_radius_m - inputs.hub_radius_m
+    airfoil_name = _simple_airfoil_name(inputs.airfoil_type)
+    fractions = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
+    return tuple(
+        BladeSection(
+            position_m=max(0.001, inputs.hub_radius_m + active_span * fraction),
+            chord_m=_interpolate(inputs.root_chord_m, inputs.tip_chord_m, fraction),
+            twist_angle_deg=_interpolate(
+                inputs.twist_angle_deg,
+                max(0.0, inputs.twist_angle_deg * 0.25),
+                fraction,
+            ),
+            airfoil_name=airfoil_name,
+            airfoil_role="Synthetic BEMT-lite station from simple root/tip geometry.",
+        )
+        for fraction in fractions
+    )
 
 
 def _prandtl_loss_factor(
@@ -77,7 +121,8 @@ def calculate_bemt_lite(
     does not solve induction factors iteratively.
     """
 
-    if not inputs.blade_sections:
+    sections = _bemt_sections(inputs)
+    if len(sections) < 2:
         return BemtLiteResult(
             mechanical_power_w=0.0,
             torque_n_m=0.0,
@@ -86,6 +131,8 @@ def calculate_bemt_lite(
             mean_relative_wind_speed_m_s=inputs.wind_speed_m_s,
             mean_angle_of_attack_deg=0.0,
             mean_prandtl_loss_factor=1.0,
+            mean_axial_induction_factor=0.0,
+            mean_tangential_induction_factor=0.0,
             warnings=("BEMT-lite requires section-table blade geometry.",),
         )
 
@@ -94,10 +141,12 @@ def calculate_bemt_lite(
     relative_speed_sum = 0.0
     angle_sum = 0.0
     loss_sum = 0.0
+    axial_induction_sum = 0.0
+    tangential_induction_sum = 0.0
     section_count = 0
     warnings: list[str] = []
 
-    for inner, outer in zip(inputs.blade_sections, inputs.blade_sections[1:], strict=False):
+    for inner, outer in zip(sections, sections[1:], strict=False):
         segment_start = max(inner.position_m, inputs.hub_radius_m)
         segment_end = min(outer.position_m, inputs.rotor_radius_m)
         radial_width = segment_end - segment_start
@@ -116,49 +165,109 @@ def calculate_bemt_lite(
         airfoil_name = outer.airfoil_name if fraction >= 0.5 else inner.airfoil_name
         airfoil = get_section_airfoil(airfoil_name)
 
-        tangential_speed = omega * radius
-        relative_speed = sqrt(inputs.wind_speed_m_s**2 + tangential_speed**2)
-        inflow_angle_deg = degrees(atan2(inputs.wind_speed_m_s, max(tangential_speed, 1e-9)))
-        angle_of_attack_deg = inflow_angle_deg - (inputs.pitch_angle_deg + twist)
-        reynolds_number = (
-            inputs.air_density_kg_m3 * relative_speed * chord / inputs.air_dynamic_viscosity_kg_m_s
-        )
-        performance = estimate_airfoil_performance(
-            airfoil.family,
-            angle_of_attack_deg=angle_of_attack_deg,
-            reynolds_number=reynolds_number if use_reynolds_correction else 200_000.0,
-        )
-        efficiency_factor = (
-            performance.efficiency_factor * airfoil_efficiency_multiplier
-            if use_airfoil_correction
-            else 1.0
-        )
-        cl = performance.lift_coefficient * efficiency_factor
-        cd = performance.drag_coefficient / max(efficiency_factor, 0.35)
+        local_solidity = inputs.blade_count * chord / (2.0 * pi * max(radius, 1e-6))
+        axial_induction = 0.10
+        tangential_induction = 0.0
+        relative_speed = inputs.wind_speed_m_s
+        angle_of_attack_deg = 0.0
+        phi = radians(10.0)
+        loss_factor = 1.0
+        performance_warnings: tuple[str, ...] = ()
+        cl = 0.0
+        cd = 0.0
+
+        for _ in range(35):
+            axial_speed = inputs.wind_speed_m_s * (1.0 - axial_induction)
+            tangential_speed = omega * radius * (1.0 + tangential_induction)
+            relative_speed = sqrt(axial_speed**2 + tangential_speed**2)
+            phi = atan2(max(axial_speed, 1e-6), max(tangential_speed, 1e-9))
+            phi = _clamp(phi, radians(2.0), radians(88.0))
+            inflow_angle_deg = degrees(phi)
+            angle_of_attack_deg = inflow_angle_deg - (inputs.pitch_angle_deg + twist)
+            reynolds_number = (
+                inputs.air_density_kg_m3
+                * relative_speed
+                * chord
+                / inputs.air_dynamic_viscosity_kg_m_s
+            )
+            performance = estimate_airfoil_performance(
+                airfoil.family,
+                angle_of_attack_deg=angle_of_attack_deg,
+                reynolds_number=reynolds_number if use_reynolds_correction else 200_000.0,
+            )
+            performance_warnings = performance.warnings
+            efficiency_factor = (
+                performance.efficiency_factor * airfoil_efficiency_multiplier
+                if use_airfoil_correction
+                else 1.0
+            )
+            cl = performance.lift_coefficient * efficiency_factor
+            cd = performance.drag_coefficient / max(efficiency_factor, 0.35)
+            loss_factor = (
+                _prandtl_loss_factor(
+                    blade_count=inputs.blade_count,
+                    radius_m=radius,
+                    hub_radius_m=inputs.hub_radius_m,
+                    rotor_radius_m=inputs.rotor_radius_m,
+                    inflow_angle_rad=phi,
+                )
+                if use_prandtl_loss
+                else 1.0
+            )
+            normal_force_coefficient = cl * cos(phi) + cd * sin(phi)
+            tangential_force_coefficient = cl * sin(phi) - cd * cos(phi)
+
+            if normal_force_coefficient <= 1e-6:
+                new_axial_induction = 0.0
+            else:
+                axial_denominator = (
+                    4.0
+                    * loss_factor
+                    * sin(phi) ** 2
+                    / max(local_solidity * normal_force_coefficient, 1e-9)
+                    + 1.0
+                )
+                new_axial_induction = 1.0 / max(axial_denominator, 1e-9)
+            if abs(tangential_force_coefficient) <= 1e-6:
+                new_tangential_induction = 0.0
+            else:
+                tangential_denominator = (
+                    4.0
+                    * loss_factor
+                    * sin(phi)
+                    * cos(phi)
+                    / max(local_solidity * tangential_force_coefficient, 1e-9)
+                    - 1.0
+                )
+                new_tangential_induction = 1.0 / max(tangential_denominator, 1e-9)
+
+            new_axial_induction = _clamp(new_axial_induction, 0.0, 0.45)
+            new_tangential_induction = _clamp(new_tangential_induction, -0.15, 0.45)
+            relaxed_axial = 0.65 * axial_induction + 0.35 * new_axial_induction
+            relaxed_tangential = 0.65 * tangential_induction + 0.35 * new_tangential_induction
+            if (
+                abs(relaxed_axial - axial_induction) < 1e-4
+                and abs(relaxed_tangential - tangential_induction) < 1e-4
+            ):
+                axial_induction = relaxed_axial
+                tangential_induction = relaxed_tangential
+                break
+            axial_induction = relaxed_axial
+            tangential_induction = relaxed_tangential
 
         dynamic_pressure = 0.5 * inputs.air_density_kg_m3 * relative_speed**2
         lift = dynamic_pressure * chord * radial_width * cl
         drag = dynamic_pressure * chord * radial_width * cd
-        phi = radians(inflow_angle_deg)
-        loss_factor = (
-            _prandtl_loss_factor(
-                blade_count=inputs.blade_count,
-                radius_m=radius,
-                hub_radius_m=inputs.hub_radius_m,
-                rotor_radius_m=inputs.rotor_radius_m,
-                inflow_angle_rad=phi,
-            )
-            if use_prandtl_loss
-            else 1.0
-        )
         tangential_force = lift * sin(phi) - drag * cos(phi)
         torque += max(0.0, tangential_force * loss_factor * radius * inputs.blade_count)
 
         relative_speed_sum += relative_speed
         angle_sum += angle_of_attack_deg
         loss_sum += loss_factor
+        axial_induction_sum += axial_induction
+        tangential_induction_sum += tangential_induction
         section_count += 1
-        warnings.extend(performance.warnings)
+        warnings.extend(performance_warnings)
 
     mechanical_power = torque * omega * material_roughness_factor
     area = rotor_swept_area(inputs.rotor_radius_m, inputs.hub_radius_m)
@@ -181,5 +290,9 @@ def calculate_bemt_lite(
         ),
         mean_angle_of_attack_deg=angle_sum / section_count if section_count else 0.0,
         mean_prandtl_loss_factor=loss_sum / section_count if section_count else 1.0,
+        mean_axial_induction_factor=axial_induction_sum / section_count if section_count else 0.0,
+        mean_tangential_induction_factor=(
+            tangential_induction_sum / section_count if section_count else 0.0
+        ),
         warnings=tuple(dict.fromkeys(warnings)),
     )

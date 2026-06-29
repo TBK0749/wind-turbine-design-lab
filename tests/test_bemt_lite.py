@@ -65,3 +65,37 @@ def test_prandtl_loss_reduces_bemt_lite_power() -> None:
 
     assert with_loss.mean_prandtl_loss_factor < 1.0
     assert with_loss.mechanical_power_w < without_loss.mechanical_power_w
+
+
+def test_bemt_lite_reports_iterative_induction_factors() -> None:
+    inputs = SimulationInput(
+        rotor_radius_m=0.45,
+        hub_radius_m=0.10,
+        blade_sections=competition_50cm_sections(),
+    )
+
+    result = calculate_bemt_lite(inputs, tip_speed_ratio=6.5)
+
+    assert 0.0 < result.mean_axial_induction_factor < 0.6
+    assert -0.2 < result.mean_tangential_induction_factor < 0.6
+
+
+def test_simple_root_tip_geometry_can_be_synthesized_for_bemt_lite_solver() -> None:
+    result = calculate_bemt_lite(
+        SimulationInput(
+            wind_speed_m_s=5.5,
+            rotor_radius_m=2.0,
+            hub_radius_m=0.10,
+            root_chord_m=0.22,
+            tip_chord_m=0.06,
+            pitch_angle_deg=2.0,
+            twist_angle_deg=14.0,
+            airfoil_type="High-lift airfoil",
+            surface_finish="Smooth molded",
+        ),
+        tip_speed_ratio=6.5,
+    )
+
+    assert result.section_count >= 5
+    assert result.mean_relative_wind_speed_m_s > 5.5
+    assert result.mechanical_power_w > 0.0

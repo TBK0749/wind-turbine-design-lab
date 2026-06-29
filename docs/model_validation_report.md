@@ -11,10 +11,10 @@ The report separates strict comparisons from reference-only paper values. Refere
 | `swept_final_cp_4ms` | Small-scale Wind Energy Portable Turbine (SWEPT).pdf | range_check | medium | cp | 0.3100 to 0.3400 dimensionless | 0.3220 | within_range | 0.0% |
 | `conf4_naca4412_power_10ms_range` | Conf4_Experimental Study of Small-Scale Wind Turbine Rotors_EEAE_2020.pdf | range_check | low | mechanical_power_w | 22.00 to 48.00 W | 41.24 | within_range | 0.0% |
 | `optimization_large_rotor_cp_5_5ms` | Small_Wind_Turbine_Blade_Design_and_Optimization.pdf | range_check | medium | cp | 0.4200 to 0.4700 dimensionless | 0.3801 | below_range | -9.5% |
-| `classroom_competition_baseline_3_6ms` | Internal classroom target | runnable | high | cp | - | 0.0120 | recorded | - |
-| `classroom_competition_baseline_3_6ms` | Internal classroom target | runnable | high | rpm | - | 201.1 | recorded | - |
-| `classroom_competition_baseline_3_6ms` | Internal classroom target | runnable | high | mechanical_power_w | - | 0.2080 | recorded | - |
-| `classroom_competition_baseline_3_6ms` | Internal classroom target | runnable | high | electrical_power_mw | - | 0.6316 | recorded | - |
+| `classroom_competition_baseline_3_6ms` | Internal classroom target | runnable | high | cp | - | 0.0018 | recorded | - |
+| `classroom_competition_baseline_3_6ms` | Internal classroom target | runnable | high | rpm | - | 84.12 | recorded | - |
+| `classroom_competition_baseline_3_6ms` | Internal classroom target | runnable | high | mechanical_power_w | - | 0.0300 | recorded | - |
+| `classroom_competition_baseline_3_6ms` | Internal classroom target | runnable | high | electrical_power_mw | - | 0.1106 | recorded | - |
 
 ## Reference-only paper results
 

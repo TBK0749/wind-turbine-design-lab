@@ -64,19 +64,21 @@ The app accepts either simple root/tip geometry or several measured blade
 stations. In sectional mode, each station contains radial position, chord,
 local twist, station airfoil, and the airfoil's role. The default section-table
 path uses **BEMT-lite**, a simplified blade-section force model. It divides the
-blade into radial segments outside the hub radius, estimates the local relative
-wind speed from free-stream wind plus tangential blade speed, then calculates
-lift and drag from the local chord, twist, and selected airfoil family. Segment
-torques are summed to estimate mechanical power and Cp. Values are smoothly
-bounded, and Cp is kept below practical and Betz limits.
+blade into radial segments outside the hub radius, estimates local axial and
+tangential induction factors with a damped iteration, then calculates relative
+wind speed, angle of attack, lift, and drag from the local chord, twist, and
+selected airfoil family. Segment torques are summed to estimate mechanical
+power and Cp. Values are smoothly bounded, and Cp is kept below practical and
+Betz limits.
 
 BEMT-lite is closer to standard blade design thinking than a single whole-blade
 Cp estimate because chord, twist, radius, and station airfoil choices can change
 the result section by section. It also applies an optional Prandtl-style
 root/tip loss factor so the model is less optimistic near the hub and blade
-tip. It is still not full QBlade/BEMT. It does not iteratively solve
-axial/tangential induction factors, 3D stall delay, wake rotation, turbulence,
-tower blockage, structural bending, or manufacturing error.
+tip. It is still not full QBlade/BEMT. It uses simplified bounded induction
+updates rather than full high-induction corrections, measured polar tables,
+3D stall delay, wake rotation, turbulence, tower blockage, structural bending,
+or manufacturing error.
 
 Simple root/tip mode still uses an educational bounded Cp approximation and an
 estimated tip-speed ratio. This mode is useful for quick comparison before
@@ -221,15 +223,16 @@ The supplied 45 cm competition preset uses:
 Whole-blade pitch is added to each local twist value for the fabrication
 preview. In BEMT-lite mode, forces are calculated along blade segments. If
 BEMT-lite is disabled, the simulator falls back to representative whole-blade
-values for simpler classroom comparison.
+values for simpler classroom comparison. Simple root/tip geometry still uses
+the empirical Cp path in the dashboard because a reliable BEMT calculation
+needs measured radial chord and twist distribution.
 
 The generator model is a simplified DC equivalent. It does not yet solve the
 full two-way effect of electrical loading on rotor RPM, startup torque,
 nonlinear motor losses, rectifier losses, or battery charging. The aerodynamic
 model does not yet use external measured airfoil polar files and does not
-calculate blade element induction, structural stress, fatigue, control systems,
-or turbulent inflow. These require measured calibration data, BEMT, or
-higher-fidelity models.
+calculate structural stress, fatigue, control systems, or turbulent inflow.
+These require measured calibration data, full BEMT, or higher-fidelity models.
 
 See `docs/paper_model_notes.md` for the current paper-backed reliability notes.
 
