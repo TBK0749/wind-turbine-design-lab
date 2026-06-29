@@ -170,6 +170,17 @@ RPM and mW, calculates prediction error and correction factors, and exports CSV
 or Markdown worksheets. It does not automatically change the physics model until
 real repeatable test data is available.
 
+For measured validation after a real 3D-print / wind-tunnel test, copy
+`data/classroom_measured_benchmarks.example.csv` to
+`data/classroom_measured_benchmarks.csv`, fill one row per prototype, and run:
+
+```bash
+uv run python scripts/generate_validation_report.py
+```
+
+The generated `docs/model_validation_report.md` will append those measured
+prototype rows and compare the current model against measured RPM and mW ranges.
+
 ## Roadmap
 
 - v0.2.0: measured-data calibration workflow

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 from typing import Literal
@@ -62,11 +63,160 @@ class BenchmarkRunResult(BaseModel):
 
 def load_benchmark_cases(
     path: Path = Path("data/validation_benchmarks.json"),
+    measured_path: Path | None = None,
 ) -> list[BenchmarkCase]:
     """Load benchmark cases from JSON."""
 
     raw_cases = json.loads(path.read_text())
-    return [BenchmarkCase.model_validate(raw_case) for raw_case in raw_cases]
+    cases = [BenchmarkCase.model_validate(raw_case) for raw_case in raw_cases]
+    measured_benchmark_path = measured_path or path.with_name("classroom_measured_benchmarks.csv")
+    cases.extend(load_measured_classroom_benchmarks(measured_benchmark_path))
+    return cases
+
+
+def _csv_value(row: dict[str, str], key: str) -> str:
+    """Return a trimmed CSV value, treating missing cells as blank."""
+
+    return row.get(key, "").strip()
+
+
+def _optional_float(row: dict[str, str], key: str, default: float | None = None) -> float | None:
+    """Parse an optional float from a measured benchmark row."""
+
+    value = _csv_value(row, key)
+    if value == "":
+        return default
+    return float(value)
+
+
+def _optional_int(row: dict[str, str], key: str, default: int | None = None) -> int | None:
+    """Parse an optional integer from a measured benchmark row."""
+
+    value = _csv_value(row, key)
+    if value == "":
+        return default
+    return int(float(value))
+
+
+def _optional_bool(row: dict[str, str], key: str, default: bool = False) -> bool:
+    """Parse an optional boolean from a measured benchmark row."""
+
+    value = _csv_value(row, key).lower()
+    if value == "":
+        return default
+    return value in {"1", "true", "yes", "y", "on"}
+
+
+def _case_slug(value: str) -> str:
+    """Create a stable benchmark id suffix from a measured design name."""
+
+    lowered = value.strip().lower()
+    characters = [character if character.isalnum() else "_" for character in lowered]
+    slug = "_".join(part for part in "".join(characters).split("_") if part)
+    return slug or "classroom_trial"
+
+
+def _target_from_measured_value(
+    *,
+    metric: str,
+    measured_value: float,
+    tolerance_percent: float,
+    unit: str,
+) -> BenchmarkTarget:
+    """Create a validation target range from a measured value and tolerance."""
+
+    tolerance = abs(tolerance_percent) / 100.0
+    return BenchmarkTarget(
+        metric=metric,
+        min=measured_value * (1.0 - tolerance),
+        max=measured_value * (1.0 + tolerance),
+        unit=unit,
+    )
+
+
+def load_measured_classroom_benchmarks(
+    path: Path = Path("data/classroom_measured_benchmarks.csv"),
+) -> list[BenchmarkCase]:
+    """Load measured classroom prototype CSV rows as runnable validation cases."""
+
+    if not path.exists():
+        return []
+
+    cases: list[BenchmarkCase] = []
+    with path.open(newline="") as csv_file:
+        for index, row in enumerate(csv.DictReader(csv_file), start=1):
+            if not any(value.strip() for value in row.values() if value):
+                continue
+            design_name = _csv_value(row, "design_name") or f"Measured trial {index}"
+            case_id = _csv_value(row, "case_id") or design_name
+            tolerance_percent = _optional_float(row, "tolerance_percent", 5.0) or 5.0
+            measured_rpm = _optional_float(row, "measured_rpm", 0.0) or 0.0
+            measured_power_mw = _optional_float(row, "measured_power_mw", 0.0) or 0.0
+
+            inputs: dict[str, object] = {}
+            for key in (
+                "wind_speed_m_s",
+                "air_density_kg_m3",
+                "rotor_radius_m",
+                "hub_radius_m",
+                "blade_mass_kg",
+                "trial_duration_s",
+                "generator_volts_per_1000_rpm",
+                "generator_internal_resistance_ohm",
+                "load_resistance_ohm",
+                "generator_efficiency_percent",
+                "gear_ratio",
+            ):
+                value = _optional_float(row, key)
+                if value is not None:
+                    inputs[key] = value
+            blade_count = _optional_int(row, "blade_count")
+            if blade_count is not None:
+                inputs["blade_count"] = blade_count
+            for key in ("material", "surface_finish"):
+                value = _csv_value(row, key)
+                if value:
+                    inputs[key] = value
+
+            targets: list[BenchmarkTarget] = []
+            if measured_rpm > 0.0:
+                targets.append(
+                    _target_from_measured_value(
+                        metric="rpm",
+                        measured_value=measured_rpm,
+                        tolerance_percent=tolerance_percent,
+                        unit="RPM",
+                    )
+                )
+            if measured_power_mw > 0.0:
+                targets.append(
+                    _target_from_measured_value(
+                        metric="electrical_power_mw",
+                        measured_value=measured_power_mw,
+                        tolerance_percent=tolerance_percent,
+                        unit="mW",
+                    )
+                )
+
+            cases.append(
+                BenchmarkCase(
+                    id=f"measured_{_case_slug(case_id)}",
+                    paper="Measured classroom benchmark",
+                    source_detail=f"{design_name} measured after 3D print / tunnel test.",
+                    role="runnable",
+                    confidence="high",
+                    notes=_csv_value(row, "notes")
+                    or "Local measured prototype row loaded from classroom CSV.",
+                    inputs=inputs,
+                    targets=targets,
+                    use_competition_sections=_optional_bool(
+                        row,
+                        "use_competition_sections",
+                        default=True,
+                    ),
+                )
+            )
+    return cases
 
 
 def compare_prediction_to_target(predicted: float, target: BenchmarkTarget) -> TargetComparison:
@@ -242,6 +392,12 @@ def render_validation_report(cases: list[BenchmarkCase]) -> str:
             "- Wind tunnel speed at the rotor plane.",
             "- Measured RPM, voltage, current, load resistance, and trial duration.",
             "- Blade mass, surface finish, and generator internal resistance.",
+            (
+                "- To add real classroom benchmarks, copy "
+                "`data/classroom_measured_benchmarks.example.csv` to "
+                "`data/classroom_measured_benchmarks.csv`, fill one row per prototype, "
+                "then regenerate this report."
+            ),
             "",
         ]
     )
