@@ -87,18 +87,23 @@ def airfoil_profile_points(name: str, point_count: int = 80) -> list[tuple[float
             (0.0, -thickness / 2.0),
             (1.0, -thickness / 2.0),
         ]
-    if name == "Clark Y":
+    source_backed_shapes = {
+        "Clark Y": (0.035, 0.40, 0.117),
+        "SG6040": (0.045, 0.45, 0.160),
+        "SG6042": (0.045, 0.48, 0.100),
+        "SG6043": (0.051, 0.533, 0.100),
+        "S1223": (0.055, 0.35, 0.121),
+        "Selig S1223": (0.055, 0.35, 0.121),
+        "E387": (0.035, 0.40, 0.091),
+        "NREL S822": (0.040, 0.42, 0.160),
+        "NREL S823": (0.045, 0.42, 0.210),
+    }
+    if name in source_backed_shapes:
+        camber, camber_position, thickness = source_backed_shapes[name]
         return _naca_4digit_profile(
-            camber=0.035,
-            camber_position=0.40,
-            thickness=0.115,
-            point_count=point_count,
-        )
-    if name == "Selig S1223":
-        return _naca_4digit_profile(
-            camber=0.055,
-            camber_position=0.35,
-            thickness=0.122,
+            camber=camber,
+            camber_position=camber_position,
+            thickness=thickness,
             point_count=point_count,
         )
 
