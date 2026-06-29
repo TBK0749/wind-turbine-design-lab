@@ -26,10 +26,14 @@ because laminar separation bubbles can reduce lift and increase drag.
 
 Model change:
 
-- The airfoil model now reduces lift, increases drag, and reduces efficiency
-  when Reynolds number is low.
-- This makes the simulator more conservative for 3.6 m/s tunnel tests and
-  small 3D-printed blades.
+- The airfoil model now applies simplified polar-aware low-Reynolds corrections
+  instead of one generic penalty for every airfoil family.
+- Flat plates remain strongly penalized at low Reynolds number, while cambered
+  and high-lift families retain more useful lift before the model applies drag
+  and efficiency losses.
+- This makes the simulator more conservative than ideal textbook equations but
+  less pessimistic for purpose-built low-speed airfoils such as the SWEPT-style
+  high-lift rotor.
 
 ### 2. Section losses near the root and tip should not be ignored
 
@@ -88,7 +92,7 @@ Model implication:
 The current model still does not perform:
 
 - iterative axial and tangential induction solving;
-- measured airfoil polar lookup tables;
+- external measured airfoil polar lookup tables;
 - post-stall or Viterna extrapolation;
 - 3D stall delay;
 - wake rotation;
@@ -98,4 +102,3 @@ The current model still does not perform:
 
 These are candidates for future Phase 2/Phase 3 work after measured classroom
 data is available.
-

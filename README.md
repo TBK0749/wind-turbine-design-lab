@@ -15,8 +15,8 @@ blade geometry, mass, and material affect estimated turbine performance.
 - Blend root, mid-span, and tip airfoil effects so station changes affect the estimate.
 - Preview the cutting outline and chord/twist distribution for fabrication.
 - Choose a classroom airfoil family and review simplified lift/drag feedback.
-- Apply low-Reynolds and Prandtl-style root/tip loss corrections in the
-  section-table model.
+- Apply polar-aware low-Reynolds and Prandtl-style root/tip loss corrections in
+  the section-table model.
 - Estimate RPM, torque, mechanical power, Cp, tip-speed ratio, and efficiency.
 - Review a student-friendly design score and recommendations.
 - Plot RPM, torque, and power across a wind-speed range.
@@ -140,10 +140,10 @@ The simulator uses wind power, swept area, an estimated tip-speed ratio, and
 two classroom model paths. Simple root/tip geometry uses an educational bounded
 Cp approximation. Section-table geometry uses a BEMT-lite section-force model
 that sums lift and drag along blade segments using local radius, chord, twist,
-airfoil family, relative wind speed, low-Reynolds penalties, and optional
-Prandtl-style root/tip loss. See `docs/physics_model.md` for assumptions and
-limitations, and `docs/paper_model_notes.md` for the first paper-backed
-reliability pass.
+airfoil family, relative wind speed, polar-aware low-Reynolds corrections, and
+optional Prandtl-style root/tip loss. See `docs/physics_model.md` for
+assumptions and limitations, and `docs/paper_model_notes.md` for the first
+paper-backed reliability pass.
 
 The current paper-validation status is tracked in
 [`docs/model_validation_report.md`](docs/model_validation_report.md). The report

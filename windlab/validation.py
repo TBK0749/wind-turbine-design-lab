@@ -223,7 +223,7 @@ def render_validation_report(cases: list[BenchmarkCase]) -> str:
             "",
             (
                 "- If the model is consistently below measured Cp for reliable runnable "
-                "cases, inspect low-Reynolds penalties and practical Cp limits."
+                "cases, inspect low-Reynolds polar corrections and practical Cp limits."
             ),
             (
                 "- If the model is consistently above measured Cp, inspect Prandtl loss, "

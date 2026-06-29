@@ -74,3 +74,15 @@ def test_render_validation_report_includes_core_sections() -> None:
     assert "## Reference-only paper results" in report
     assert "swept_final_cp_4ms" in report
     assert "reference_only" in report
+
+
+def test_polar_model_moves_key_paper_benchmarks_closer_to_targets() -> None:
+    cases = {case.id: case for case in load_benchmark_cases()}
+
+    swept = run_benchmark_case(cases["swept_final_cp_4ms"])
+    conf4 = run_benchmark_case(cases["conf4_naca4412_power_10ms_range"])
+    optimized = run_benchmark_case(cases["optimization_large_rotor_cp_5_5ms"])
+
+    assert swept.predictions["cp"] > 0.21
+    assert optimized.predictions["cp"] > 0.33
+    assert conf4.comparisons[0].status == "within_range"

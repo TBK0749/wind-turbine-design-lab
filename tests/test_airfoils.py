@@ -63,6 +63,24 @@ def test_low_reynolds_number_reduces_lift_and_increases_drag() -> None:
     assert any("Reynolds" in warning for warning in very_low_re.warnings)
 
 
+def test_high_lift_low_re_polar_preserves_useful_lift_to_drag() -> None:
+    high_lift = estimate_airfoil_performance(
+        "High-lift airfoil",
+        angle_of_attack_deg=6.0,
+        reynolds_number=25_000.0,
+    )
+    flat_plate = estimate_airfoil_performance(
+        "Flat plate / Foam board",
+        angle_of_attack_deg=6.0,
+        reynolds_number=25_000.0,
+    )
+
+    assert high_lift.lift_coefficient > 0.60
+    assert high_lift.drag_coefficient < 0.10
+    assert high_lift.efficiency_factor > 0.60
+    assert high_lift.lift_drag_ratio > flat_plate.lift_drag_ratio * 2.0
+
+
 def test_unknown_airfoil_is_rejected() -> None:
     with pytest.raises(ValueError, match="Airfoil"):
         estimate_airfoil_performance(

@@ -76,33 +76,136 @@ class AirfoilPerformance:
     warnings: tuple[str, ...] = ()
 
 
-def _reynolds_adjustment(reynolds_number: float) -> tuple[float, float, float, tuple[str, ...]]:
+@dataclass(frozen=True)
+class LowRePolarAdjustment:
+    """Family-specific low-Reynolds correction inspired by simplified polar trends."""
+
+    lift_factor: float
+    drag_factor: float
+    efficiency_factor: float
+    warning: str | None = None
+
+
+LOW_RE_POLAR_ADJUSTMENTS: dict[str, tuple[LowRePolarAdjustment, ...]] = {
+    "Flat plate / Foam board": (
+        LowRePolarAdjustment(
+            0.62,
+            2.05,
+            0.58,
+            "Very low Reynolds number: flat plates lose lift and create high drag.",
+        ),
+        LowRePolarAdjustment(
+            0.72,
+            1.70,
+            0.68,
+            "Low Reynolds number: flat plates may lose lift and see extra drag.",
+        ),
+        LowRePolarAdjustment(
+            0.86,
+            1.30,
+            0.84,
+            "Moderate-low Reynolds number: flat-plate performance is still penalized.",
+        ),
+    ),
+    "Cambered plate": (
+        LowRePolarAdjustment(
+            0.78,
+            1.55,
+            0.78,
+            "Very low Reynolds number: cambered sections keep some lift but add drag.",
+        ),
+        LowRePolarAdjustment(
+            0.86,
+            1.32,
+            0.84,
+            "Low Reynolds number: cambered sections are penalized but remain useful.",
+        ),
+        LowRePolarAdjustment(
+            0.94,
+            1.12,
+            0.94,
+            "Moderate-low Reynolds number: cambered-section performance is still penalized.",
+        ),
+    ),
+    "Symmetric airfoil": (
+        LowRePolarAdjustment(
+            0.72,
+            1.65,
+            0.74,
+            "Very low Reynolds number: symmetric airfoils need clean angle of attack.",
+        ),
+        LowRePolarAdjustment(
+            0.82,
+            1.38,
+            0.82,
+            "Low Reynolds number: symmetric airfoil performance is penalized.",
+        ),
+        LowRePolarAdjustment(
+            0.92,
+            1.14,
+            0.92,
+            "Moderate-low Reynolds number: symmetric-airfoil performance is still penalized.",
+        ),
+    ),
+    "High-lift airfoil": (
+        LowRePolarAdjustment(
+            0.92,
+            1.18,
+            0.96,
+            "Very low Reynolds number: high-lift polar uses apparent-speed correction.",
+        ),
+        LowRePolarAdjustment(
+            0.78,
+            1.45,
+            0.82,
+            "Low Reynolds number: high-lift airfoils keep useful lift but add drag.",
+        ),
+        LowRePolarAdjustment(
+            0.88,
+            1.25,
+            0.91,
+            "Moderate-low Reynolds number: high-lift airfoil performance is still penalized.",
+        ),
+        LowRePolarAdjustment(
+            0.95,
+            1.10,
+            1.00,
+            "Recovering Reynolds number: high-lift polar performance is improving.",
+        ),
+    ),
+}
+
+
+def _reynolds_adjustment(
+    airfoil_type: str,
+    reynolds_number: float,
+) -> tuple[float, float, float, tuple[str, ...]]:
     """Return lift, drag, and efficiency multipliers for low-Reynolds operation."""
 
     if reynolds_number < 30_000.0:
-        return (
-            0.65,
-            1.90,
-            0.62,
-            ("Very low Reynolds number: expect reduced lift and much higher drag.",),
-        )
-    if reynolds_number < 80_000.0:
-        return (
-            0.78,
-            1.45,
-            0.78,
-            ("Low Reynolds number: small blades may lose lift and see extra drag.",),
-        )
-    if reynolds_number < 150_000.0:
-        return (
-            0.90,
-            1.20,
-            0.90,
-            ("Moderate-low Reynolds number: airfoil performance is still penalized.",),
-        )
-    if reynolds_number > 500_000.0:
+        adjustment = LOW_RE_POLAR_ADJUSTMENTS[airfoil_type][0]
+    elif (
+        airfoil_type == "High-lift airfoil"
+        and reynolds_number >= 50_000.0
+        and reynolds_number < 80_000.0
+    ):
+        adjustment = LOW_RE_POLAR_ADJUSTMENTS[airfoil_type][3]
+    elif reynolds_number < 80_000.0:
+        adjustment = LOW_RE_POLAR_ADJUSTMENTS[airfoil_type][1]
+    elif reynolds_number < 150_000.0:
+        adjustment = LOW_RE_POLAR_ADJUSTMENTS[airfoil_type][2]
+    elif reynolds_number > 500_000.0:
         return (1.03, 0.95, 1.03, ())
-    return (1.0, 1.0, 1.0, ())
+    else:
+        return (1.0, 1.0, 1.0, ())
+
+    warnings = (adjustment.warning,) if adjustment.warning else ()
+    return (
+        adjustment.lift_factor,
+        adjustment.drag_factor,
+        adjustment.efficiency_factor,
+        warnings,
+    )
 
 
 def estimate_airfoil_performance(
@@ -128,7 +231,7 @@ def estimate_airfoil_performance(
         lift *= stall_factor
 
     lift_re_factor, drag_re_factor, efficiency_re_factor, reynolds_warnings = _reynolds_adjustment(
-        reynolds_number
+        airfoil_type, reynolds_number
     )
     lift *= lift_re_factor
     warnings: list[str] = list(reynolds_warnings)

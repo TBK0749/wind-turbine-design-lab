@@ -112,9 +112,11 @@ constants for lift slope, drag, stall angle, and an efficiency bias. The model
 produces estimated lift coefficient, drag coefficient, lift/drag ratio, airfoil
 efficiency factor, and stall risk. Supplied small-turbine papers show that low
 Reynolds number can reduce lift and increase drag strongly, especially around
-`10^4` to `10^5`, so the model applies a low-Reynolds penalty when Reynolds
-correction is enabled. The efficiency factor adjusts Cp and slightly adjusts
-TSR/RPM so draggy airfoils can reduce the generator mW score.
+`10^4` to `10^5`, so the model applies simplified polar-aware low-Reynolds
+corrections when Reynolds correction is enabled. Flat plates receive stronger
+penalties, while cambered and high-lift families retain more useful lift at
+student-scale Reynolds numbers. The efficiency factor adjusts Cp and slightly
+adjusts TSR/RPM so draggy airfoils can reduce the generator mW score.
 
 ## Advanced calibration controls
 
@@ -224,10 +226,10 @@ values for simpler classroom comparison.
 The generator model is a simplified DC equivalent. It does not yet solve the
 full two-way effect of electrical loading on rotor RPM, startup torque,
 nonlinear motor losses, rectifier losses, or battery charging. The aerodynamic
-model does not use measured airfoil polar files and does not calculate blade
-element induction, structural stress, fatigue, control systems, or turbulent
-inflow. These require measured calibration data, BEMT, or higher-fidelity
-models.
+model does not yet use external measured airfoil polar files and does not
+calculate blade element induction, structural stress, fatigue, control systems,
+or turbulent inflow. These require measured calibration data, BEMT, or
+higher-fidelity models.
 
 See `docs/paper_model_notes.md` for the current paper-backed reliability notes.
 
