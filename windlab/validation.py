@@ -131,3 +131,115 @@ def run_benchmark_case(case: BenchmarkCase) -> BenchmarkRunResult:
         predictions=predictions,
         comparisons=comparisons,
     )
+
+
+def _format_float(value: float) -> str:
+    """Format validation numbers consistently."""
+
+    if abs(value) >= 100.0:
+        return f"{value:.1f}"
+    if abs(value) >= 10.0:
+        return f"{value:.2f}"
+    return f"{value:.4f}"
+
+
+def render_validation_report(cases: list[BenchmarkCase]) -> str:
+    """Render the full model validation report as Markdown."""
+
+    run_results = {case.id: run_benchmark_case(case) for case in cases}
+    lines: list[str] = [
+        "# Model Validation Report",
+        "",
+        (
+            "This report compares the current educational simulator with benchmark values "
+            "extracted from the supplied small-wind-turbine papers."
+        ),
+        "",
+        (
+            "The report separates strict comparisons from reference-only paper values. "
+            "Reference-only rows are not used for calibration because geometry, load, "
+            "or generator details are incomplete."
+        ),
+        "",
+        "## Runnable and range-check comparisons",
+        "",
+        "| Case | Paper | Role | Confidence | Metric | Target | Predicted | Status | Error |",
+        "|---|---|---|---|---|---:|---:|---|---:|",
+    ]
+
+    for case in cases:
+        if case.role == "reference_only":
+            continue
+        result = run_results[case.id]
+        if not case.targets:
+            for metric in ("cp", "rpm", "mechanical_power_w", "electrical_power_mw"):
+                prediction = result.predictions.get(metric)
+                if prediction is None:
+                    continue
+                lines.append(
+                    f"| `{case.id}` | {case.paper} | {case.role} | {case.confidence} | "
+                    f"{metric} | - | {_format_float(prediction)} | recorded | - |"
+                )
+            continue
+        for comparison in result.comparisons:
+            target_range = (
+                f"{_format_float(comparison.target_min)} to "
+                f"{_format_float(comparison.target_max)} {comparison.unit}"
+            )
+            lines.append(
+                f"| `{case.id}` | {case.paper} | {case.role} | {case.confidence} | "
+                f"{comparison.metric} | {target_range} | "
+                f"{_format_float(comparison.predicted)} | {comparison.status} | "
+                f"{comparison.error_percent:.1f}% |"
+            )
+
+    lines.extend(
+        [
+            "",
+            "## Reference-only paper results",
+            "",
+            "| Case | Paper | Role | Confidence | Paper value | Why reference-only |",
+            "|---|---|---|---|---|---|",
+        ]
+    )
+    for case in cases:
+        if case.role != "reference_only":
+            continue
+        target_text = "; ".join(
+            f"{target.metric}: {_format_float(target.min)} to "
+            f"{_format_float(target.max)} {target.unit}"
+            for target in case.targets
+        )
+        lines.append(
+            f"| `{case.id}` | {case.paper} | {case.role} | {case.confidence} | "
+            f"{target_text} | {case.notes} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Calibration interpretation",
+            "",
+            (
+                "- If the model is consistently below measured Cp for reliable runnable "
+                "cases, inspect low-Reynolds penalties and practical Cp limits."
+            ),
+            (
+                "- If the model is consistently above measured Cp, inspect Prandtl loss, "
+                "surface finish, startup torque, and generator loading assumptions."
+            ),
+            (
+                "- Do not calibrate against reference-only rows until the missing geometry "
+                "and load details are added."
+            ),
+            "",
+            "## Next validation data to collect",
+            "",
+            "- Actual classroom rotor geometry after slicing or printing.",
+            "- Wind tunnel speed at the rotor plane.",
+            "- Measured RPM, voltage, current, load resistance, and trial duration.",
+            "- Blade mass, surface finish, and generator internal resistance.",
+            "",
+        ]
+    )
+    return "\n".join(lines)

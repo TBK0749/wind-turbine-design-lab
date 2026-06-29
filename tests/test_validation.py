@@ -4,6 +4,7 @@ import pytest
 
 from windlab.validation import BenchmarkTarget, compare_prediction_to_target
 from windlab.validation import load_benchmark_cases
+from windlab.validation import render_validation_report
 from windlab.validation import run_benchmark_case
 
 
@@ -59,3 +60,14 @@ def test_runnable_case_produces_core_predictions() -> None:
     assert result.predictions["rpm"] >= 0.0
     assert result.predictions["mechanical_power_w"] >= 0.0
     assert result.predictions["electrical_power_mw"] >= 0.0
+
+
+def test_render_validation_report_includes_core_sections() -> None:
+    cases = load_benchmark_cases()
+    report = render_validation_report(cases)
+
+    assert "# Model Validation Report" in report
+    assert "## Runnable and range-check comparisons" in report
+    assert "## Reference-only paper results" in report
+    assert "swept_final_cp_4ms" in report
+    assert "reference_only" in report
