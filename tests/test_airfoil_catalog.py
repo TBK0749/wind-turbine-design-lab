@@ -1,12 +1,11 @@
 import pytest
 
-from windlab.airfoils import estimate_airfoil_performance, lookup_airfoil_polar
 from windlab import section_airfoils
+from windlab.airfoils import estimate_airfoil_performance, lookup_airfoil_polar
 from windlab.section_airfoils import (
     get_section_airfoil,
     section_airfoil_options,
 )
-
 
 REQUESTED_SOURCE_BACKED_AIRFOILS = (
     "SG6040",
