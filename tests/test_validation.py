@@ -4,6 +4,7 @@ import pytest
 
 from windlab.validation import BenchmarkTarget, compare_prediction_to_target
 from windlab.validation import load_benchmark_cases
+from windlab.validation import run_benchmark_case
 
 
 def test_load_benchmark_cases_contains_supplied_papers() -> None:
@@ -32,3 +33,29 @@ def test_compare_prediction_outside_target_range_uses_nearest_bound() -> None:
 
     assert comparison.status == "below_range"
     assert comparison.error_percent == pytest.approx(-35.4838709677)
+
+
+def test_reference_only_case_is_not_simulated() -> None:
+    case = next(case for case in load_benchmark_cases() if case.id == "riej_no_diffuser_cp_reference")
+
+    result = run_benchmark_case(case)
+
+    assert result.simulated is False
+    assert result.predictions == {}
+    assert result.comparisons == []
+
+
+def test_runnable_case_produces_core_predictions() -> None:
+    case = next(
+        case
+        for case in load_benchmark_cases()
+        if case.id == "classroom_competition_baseline_3_6ms"
+    )
+
+    result = run_benchmark_case(case)
+
+    assert result.simulated is True
+    assert result.predictions["cp"] >= 0.0
+    assert result.predictions["rpm"] >= 0.0
+    assert result.predictions["mechanical_power_w"] >= 0.0
+    assert result.predictions["electrical_power_mw"] >= 0.0
