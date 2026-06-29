@@ -61,6 +61,15 @@ class BenchmarkRunResult(BaseModel):
     comparisons: list[TargetComparison] = Field(default_factory=list)
 
 
+class MeasuredBenchmarkSummary(BaseModel):
+    """Aggregate measured-vs-predicted calibration signal for one metric."""
+
+    metric: str
+    trial_count: int
+    average_error_percent: float
+    average_correction_factor: float
+
+
 def load_benchmark_cases(
     path: Path = Path("data/validation_benchmarks.json"),
     measured_path: Path | None = None,
@@ -289,6 +298,42 @@ def run_benchmark_case(case: BenchmarkCase) -> BenchmarkRunResult:
     )
 
 
+def summarize_measured_benchmark_results(
+    cases: list[BenchmarkCase],
+    run_results: dict[str, BenchmarkRunResult],
+) -> dict[str, MeasuredBenchmarkSummary]:
+    """Summarize measured classroom benchmark error and correction factors."""
+
+    measured_case_ids = {
+        case.id
+        for case in cases
+        if case.paper == "Measured classroom benchmark" and case.role == "runnable"
+    }
+    by_metric: dict[str, list[tuple[float, float]]] = {}
+    for case_id in measured_case_ids:
+        result = run_results.get(case_id)
+        if result is None or not result.simulated:
+            continue
+        for comparison in result.comparisons:
+            measured_value = (comparison.target_min + comparison.target_max) / 2.0
+            if measured_value <= 0.0 or comparison.predicted <= 0.0:
+                continue
+            error_percent = (comparison.predicted - measured_value) / measured_value * 100.0
+            correction_factor = measured_value / comparison.predicted
+            by_metric.setdefault(comparison.metric, []).append((error_percent, correction_factor))
+
+    return {
+        metric: MeasuredBenchmarkSummary(
+            metric=metric,
+            trial_count=len(values),
+            average_error_percent=sum(error for error, _ in values) / len(values),
+            average_correction_factor=(sum(correction for _, correction in values) / len(values)),
+        )
+        for metric, values in by_metric.items()
+        if values
+    }
+
+
 def _format_float(value: float) -> str:
     """Format validation numbers consistently."""
 
@@ -370,6 +415,27 @@ def render_validation_report(cases: list[BenchmarkCase]) -> str:
             f"| `{case.id}` | {case.paper} | {case.role} | {case.confidence} | "
             f"{target_text} | {case.notes} |"
         )
+
+    measured_summaries = summarize_measured_benchmark_results(cases, run_results)
+    if measured_summaries:
+        lines.extend(
+            [
+                "",
+                "## Measured classroom calibration summary",
+                "",
+                (
+                    "| Metric | Trials | Average prediction error | "
+                    "Average measured/model correction |"
+                ),
+                "|---|---:|---:|---:|",
+            ]
+        )
+        for summary in measured_summaries.values():
+            lines.append(
+                f"| {summary.metric} | {summary.trial_count} | "
+                f"{summary.average_error_percent:.1f}% | "
+                f"{summary.average_correction_factor:.4f} |"
+            )
 
     lines.extend(
         [
