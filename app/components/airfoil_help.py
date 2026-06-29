@@ -12,6 +12,12 @@ def _display_value(value: float | None, suffix: str = "%") -> str:
     return "—" if value is None else f"{value:g}{suffix}"
 
 
+def _reynolds_range(value_min: float, value_max: float) -> str:
+    """Return a compact Reynolds range label."""
+
+    return f"{value_min:,.0f}-{value_max:,.0f}"
+
+
 def render_airfoil_help() -> None:
     """Explain airfoils and NACA codes in classroom language."""
 
@@ -30,8 +36,13 @@ lower drag.
 The last two digits are especially useful for students: thicker airfoils are
 stronger near the root, while thinner airfoils usually reduce drag near the tip.
 
-The table below includes **Best zone**, camber, camber position, thickness, and
-a short student meaning for each airfoil.
+The table below includes **Best zone**, camber, camber position, thickness,
+**Reynolds range**, confidence, source note, and a short student meaning for
+each airfoil.
+
+**Confidence is not accuracy certification.** It tells you how much source
+context the simulator has for the airfoil. Final mW accuracy still needs real
+rotor tests.
 """
         )
 
@@ -45,6 +56,12 @@ a short student meaning for each airfoil.
                     "Camber": _display_value(airfoil.camber_percent),
                     "Camber position": _display_value(airfoil.camber_position_percent),
                     "Thickness": _display_value(airfoil.thickness_percent),
+                    "Reynolds range": _reynolds_range(
+                        airfoil.recommended_reynolds_min,
+                        airfoil.recommended_reynolds_max,
+                    ),
+                    "Confidence": airfoil.confidence,
+                    "Source note": airfoil.source_note,
                     "Student meaning": airfoil.plain_language_summary,
                 }
             )

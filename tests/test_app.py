@@ -100,6 +100,16 @@ def test_airfoil_help_explains_naca_codes() -> None:
     assert any("Best zone" in text.value for text in app.markdown)
 
 
+def test_airfoil_help_shows_source_backed_metadata() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    assert not app.exception
+    assert any("Confidence" in text.value for text in app.markdown)
+    assert any("Reynolds range" in text.value for text in app.markdown)
+    assert any("SG6043" in dataframe.value.to_string() for dataframe in app.dataframe)
+
+
 def test_airfoil_preview_and_design_comparison_render() -> None:
     app_path = Path(__file__).parents[1] / "app" / "main.py"
     app = AppTest.from_file(str(app_path), default_timeout=15).run()

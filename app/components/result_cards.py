@@ -3,6 +3,20 @@
 import streamlit as st
 
 from windlab.models import SimulationResult
+from windlab.section_airfoils import get_section_airfoil
+
+
+def _airfoil_context(name: str) -> str | None:
+    """Return compact metadata for a catalog-backed airfoil."""
+
+    try:
+        airfoil = get_section_airfoil(name)
+    except ValueError:
+        return None
+    return (
+        f"{airfoil.confidence} confidence · "
+        f"Re {airfoil.recommended_reynolds_min:,.0f}-{airfoil.recommended_reynolds_max:,.0f}"
+    )
 
 
 def render_result_cards(result: SimulationResult) -> None:
@@ -71,3 +85,7 @@ def render_airfoil_cards(result: SimulationResult) -> None:
     second[1].metric("Drag coefficient", f"{result.airfoil_drag_coefficient:.4f}")
     second[2].metric("Stall risk", "Yes" if result.airfoil_stall_risk else "No")
     second[3].metric("Representative airfoil", result.representative_airfoil_name)
+
+    context = _airfoil_context(result.representative_airfoil_name)
+    if context:
+        st.caption(f"Representative airfoil context: {context}")
