@@ -26,8 +26,11 @@ because laminar separation bubbles can reduce lift and increase drag.
 
 Model change:
 
-- The airfoil model now applies simplified polar-aware low-Reynolds corrections
-  instead of one generic penalty for every airfoil family.
+- The airfoil model now uses an internal educational CL/CD polar lookup table
+  with interpolation by angle of attack and Reynolds number instead of one
+  generic penalty for every airfoil family.
+- A very-low-Re row near `10^4` was added so very small rotors are not treated
+  as if they were operating at the easier `2.5 x 10^4` to `5 x 10^4` range.
 - Flat plates remain strongly penalized at low Reynolds number, while cambered
   and high-lift families retain more useful lift before the model applies drag
   and efficiency losses.
@@ -93,7 +96,7 @@ Model implication:
 The current model still does not perform:
 
 - full high-induction and convergence corrections used by engineering BEMT;
-- external measured airfoil polar lookup tables;
+- external measured airfoil polar files from XFOIL/QBlade or wind-tunnel data;
 - post-stall or Viterna extrapolation;
 - 3D stall delay;
 - wake rotation;

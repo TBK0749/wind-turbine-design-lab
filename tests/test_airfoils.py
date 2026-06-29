@@ -1,6 +1,10 @@
 import pytest
 
-from windlab.airfoils import AIRFOIL_LIBRARY, estimate_airfoil_performance
+from windlab.airfoils import (
+    AIRFOIL_LIBRARY,
+    estimate_airfoil_performance,
+    lookup_airfoil_polar,
+)
 
 
 def test_airfoil_library_contains_classroom_options() -> None:
@@ -79,6 +83,49 @@ def test_high_lift_low_re_polar_preserves_useful_lift_to_drag() -> None:
     assert high_lift.drag_coefficient < 0.10
     assert high_lift.efficiency_factor > 0.60
     assert high_lift.lift_drag_ratio > flat_plate.lift_drag_ratio * 2.0
+
+
+def test_lookup_airfoil_polar_interpolates_angle_and_reynolds_number() -> None:
+    low_re = lookup_airfoil_polar(
+        "NACA 4412",
+        angle_of_attack_deg=6.0,
+        reynolds_number=50_000.0,
+    )
+    high_re = lookup_airfoil_polar(
+        "NACA 4412",
+        angle_of_attack_deg=6.0,
+        reynolds_number=200_000.0,
+    )
+
+    assert low_re.lift_coefficient < high_re.lift_coefficient
+    assert low_re.drag_coefficient > high_re.drag_coefficient
+    assert 0.70 < high_re.lift_coefficient < 1.10
+    assert 0.020 < high_re.drag_coefficient < 0.050
+
+
+def test_specific_naca_polar_changes_drag_and_efficiency() -> None:
+    root = estimate_airfoil_performance(
+        "High-lift airfoil",
+        airfoil_name="NACA 4418",
+        angle_of_attack_deg=6.0,
+        reynolds_number=100_000.0,
+    )
+    mid = estimate_airfoil_performance(
+        "High-lift airfoil",
+        airfoil_name="NACA 4412",
+        angle_of_attack_deg=6.0,
+        reynolds_number=100_000.0,
+    )
+    tip = estimate_airfoil_performance(
+        "Cambered plate",
+        airfoil_name="NACA 2412",
+        angle_of_attack_deg=6.0,
+        reynolds_number=100_000.0,
+    )
+
+    assert root.drag_coefficient > mid.drag_coefficient
+    assert root.lift_drag_ratio < mid.lift_drag_ratio
+    assert tip.drag_coefficient <= mid.drag_coefficient
 
 
 def test_unknown_airfoil_is_rejected() -> None:

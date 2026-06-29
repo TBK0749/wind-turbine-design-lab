@@ -192,6 +192,7 @@ def calculate_bemt_lite(
             )
             performance = estimate_airfoil_performance(
                 airfoil.family,
+                airfoil_name=airfoil.name,
                 angle_of_attack_deg=angle_of_attack_deg,
                 reynolds_number=reynolds_number if use_reynolds_correction else 200_000.0,
             )

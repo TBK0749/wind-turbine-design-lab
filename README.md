@@ -140,10 +140,11 @@ The simulator uses wind power, swept area, an estimated tip-speed ratio, and
 two classroom model paths. Simple root/tip geometry uses an educational bounded
 Cp approximation. Section-table geometry uses a BEMT-lite section-force model
 that sums lift and drag along blade segments using local radius, chord, twist,
-airfoil family, relative wind speed, polar-aware low-Reynolds corrections, and
-optional Prandtl-style root/tip loss. It now includes a damped educational
-estimate of axial and tangential induction factors for measured section-table
-blades. See `docs/physics_model.md` for assumptions and limitations, and
+airfoil family, relative wind speed, internal CL/CD polar lookup tables with
+low-Reynolds interpolation, and optional Prandtl-style root/tip loss. It now
+includes a damped educational estimate of axial and tangential induction
+factors for measured section-table blades. See `docs/physics_model.md` for
+assumptions and limitations, and
 `docs/paper_model_notes.md` for the first paper-backed reliability pass.
 
 The current paper-validation status is tracked in

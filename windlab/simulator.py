@@ -131,6 +131,7 @@ def estimate_section_airfoil_blend(inputs: SimulationInput) -> SectionAirfoilBle
         )
         performance = estimate_airfoil_performance(
             airfoil_definition.family,
+            airfoil_name=airfoil_definition.name,
             angle_of_attack_deg=angle_of_attack,
             reynolds_number=reynolds_number if inputs.use_reynolds_correction else 200_000.0,
         )

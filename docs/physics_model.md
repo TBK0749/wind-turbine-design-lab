@@ -120,16 +120,16 @@ chord:
 Re = ρ × V × chord / μ
 ```
 
-where μ defaults to 1.81×10⁻⁵ kg/(m·s). Each airfoil family has classroom
-constants for lift slope, drag, stall angle, and an efficiency bias. The model
-produces estimated lift coefficient, drag coefficient, lift/drag ratio, airfoil
-efficiency factor, and stall risk. Supplied small-turbine papers show that low
-Reynolds number can reduce lift and increase drag strongly, especially around
-`10^4` to `10^5`, so the model applies simplified polar-aware low-Reynolds
-corrections when Reynolds correction is enabled. Flat plates receive stronger
-penalties, while cambered and high-lift families retain more useful lift at
-student-scale Reynolds numbers. The efficiency factor adjusts Cp and slightly
-adjusts TSR/RPM so draggy airfoils can reduce the generator mW score.
+where μ defaults to 1.81×10⁻⁵ kg/(m·s). The model uses an internal educational
+CL/CD polar lookup table for the supplied airfoils, including NACA 4418, 4415,
+4412, 2412, 0012-family sections, Clark Y, Selig S1223, and Flat plate. It
+interpolates those sample points by angle of attack and Reynolds number, then
+reports lift coefficient, drag coefficient, lift/drag ratio, airfoil efficiency
+factor, and stall risk. Supplied small-turbine papers show that low Reynolds
+number can reduce lift and increase drag strongly, especially around `10^4` to
+`10^5`, so the table includes a very-low-Re row near `10^4` and stronger drag
+penalties for flat or rough sections. The efficiency factor adjusts Cp and
+slightly adjusts TSR/RPM so draggy airfoils can reduce the generator mW score.
 
 ## Advanced calibration controls
 

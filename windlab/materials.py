@@ -32,7 +32,7 @@ MATERIALS: dict[str, Material] = {
 SURFACE_FINISHES: dict[str, SurfaceFinish] = {
     "Raw 3D print": SurfaceFinish(
         "Raw 3D print",
-        0.86,
+        0.72,
         "Visible layer lines; easy to print but adds drag.",
     ),
     "Lightly sanded": SurfaceFinish(
