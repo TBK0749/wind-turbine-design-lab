@@ -1,6 +1,7 @@
 import csv
 import io
 
+from windlab.blade_geometry import competition_50cm_sections
 from windlab.calibration import (
     ExperimentMeasurement,
     average_correction_factors,
@@ -109,3 +110,30 @@ def test_validation_benchmark_csv_export_matches_validation_import_format() -> N
     assert row["measured_rpm"] == "420.0"
     assert row["measured_power_mw"] == "2.5"
     assert row["tolerance_percent"] == "10.0"
+
+
+def test_validation_benchmark_csv_preserves_section_table_geometry() -> None:
+    inputs = SimulationInput(
+        wind_speed_m_s=3.6,
+        rotor_radius_m=0.45,
+        hub_radius_m=0.10,
+        blade_count=3,
+        blade_sections=competition_50cm_sections(),
+    )
+    measurements = [
+        ExperimentMeasurement(
+            design_name="Section Prototype",
+            wind_speed_m_s=3.6,
+            predicted_rpm=400.0,
+            measured_rpm=390.0,
+            predicted_power_mw=2.0,
+            measured_power_mw=2.2,
+        )
+    ]
+
+    csv_text = measurements_as_validation_benchmark_csv(measurements, inputs)
+    row = next(csv.DictReader(io.StringIO(csv_text)))
+
+    assert row["use_competition_sections"] == "false"
+    assert "NACA 4418" in row["blade_sections_json"]
+    assert '"position_m": 0.05' in row["blade_sections_json"]

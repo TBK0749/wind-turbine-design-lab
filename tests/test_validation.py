@@ -1,4 +1,5 @@
 import csv
+import json
 from pathlib import Path
 
 import pytest
@@ -157,3 +158,42 @@ def test_load_benchmark_cases_appends_measured_classroom_csv(tmp_path: Path) -> 
     report = render_validation_report(cases)
     assert "Measured classroom benchmark" in report
     assert "electrical_power_mw" in report
+
+
+def test_measured_benchmark_csv_imports_section_table_json(tmp_path: Path) -> None:
+    measured_csv = tmp_path / "classroom_measured_benchmarks.csv"
+    sections_json = json.dumps(
+        [
+            {
+                "position_m": 0.05,
+                "chord_m": 0.085,
+                "twist_angle_deg": 20.0,
+                "airfoil_name": "NACA 4418",
+                "airfoil_role": "Root strength",
+            },
+            {
+                "position_m": 0.45,
+                "chord_m": 0.018,
+                "twist_angle_deg": 0.0,
+                "airfoil_name": "NACA 2412",
+                "airfoil_role": "Tip vortex control",
+            },
+        ]
+    )
+    escaped_sections_json = sections_json.replace('"', '""')
+    measured_csv.write_text(
+        "\n".join(
+            [
+                "design_name,wind_speed_m_s,rotor_radius_m,use_competition_sections,"
+                "blade_sections_json,measured_rpm,measured_power_mw",
+                f'Custom section blade,3.6,0.45,false,"{escaped_sections_json}",390,2.2',
+            ]
+        )
+    )
+
+    case = load_measured_classroom_benchmarks(measured_csv)[0]
+
+    assert case.use_competition_sections is False
+    assert case.inputs["blade_sections"][0]["airfoil_name"] == "NACA 4418"
+    assert case.inputs["blade_sections"][1]["position_m"] == 0.45
+    assert run_benchmark_case(case).simulated is True

@@ -177,6 +177,9 @@ def load_measured_classroom_benchmarks(
                 value = _csv_value(row, key)
                 if value:
                     inputs[key] = value
+            blade_sections_json = _csv_value(row, "blade_sections_json")
+            if blade_sections_json:
+                inputs["blade_sections"] = json.loads(blade_sections_json)
 
             targets: list[BenchmarkTarget] = []
             if measured_rpm > 0.0:
@@ -397,6 +400,8 @@ def render_validation_report(cases: list[BenchmarkCase]) -> str:
                 "`classroom_measured_benchmarks.csv` from the Calibration tab or copy "
                 "`data/classroom_measured_benchmarks.example.csv`, place the filled file "
                 "at `data/classroom_measured_benchmarks.csv`, then regenerate this report."
+                " The app export includes the current blade section table as JSON so custom "
+                "chord, twist, and airfoil choices can be replayed."
             ),
             "",
         ]

@@ -180,6 +180,8 @@ uv run python scripts/generate_validation_report.py
 
 The generated `docs/model_validation_report.md` will append those measured
 prototype rows and compare the current model against measured RPM and mW ranges.
+The exported benchmark CSV also stores the current blade section table so a
+custom chord/twist/airfoil design can be replayed by the validation report.
 If you prefer editing by hand, copy
 `data/classroom_measured_benchmarks.example.csv` to
 `data/classroom_measured_benchmarks.csv` and fill one row per prototype.

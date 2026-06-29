@@ -2,6 +2,7 @@
 
 import csv
 import io
+import json
 from dataclasses import dataclass
 
 from windlab.models import SimulationInput
@@ -48,6 +49,7 @@ VALIDATION_BENCHMARK_FIELDNAMES = [
     "generator_efficiency_percent",
     "gear_ratio",
     "use_competition_sections",
+    "blade_sections_json",
     "measured_rpm",
     "measured_power_mw",
     "tolerance_percent",
@@ -165,9 +167,15 @@ def measurements_as_validation_benchmark_csv(
     """Export measurements in the format loaded by model validation reports."""
 
     should_use_competition_sections = (
-        bool(inputs.blade_sections)
-        if use_competition_sections is None
-        else use_competition_sections
+        False if use_competition_sections is None else use_competition_sections
+    )
+    blade_sections_json = (
+        json.dumps(
+            [section.model_dump() for section in inputs.blade_sections],
+            ensure_ascii=False,
+        )
+        if inputs.blade_sections
+        else ""
     )
     rows = [
         {
@@ -188,6 +196,7 @@ def measurements_as_validation_benchmark_csv(
             "generator_efficiency_percent": inputs.generator_efficiency_percent,
             "gear_ratio": inputs.gear_ratio,
             "use_competition_sections": ("true" if should_use_competition_sections else "false"),
+            "blade_sections_json": blade_sections_json,
             "measured_rpm": measurement.measured_rpm,
             "measured_power_mw": measurement.measured_power_mw,
             "tolerance_percent": tolerance_percent,
