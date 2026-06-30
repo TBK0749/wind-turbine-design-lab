@@ -71,3 +71,14 @@ def test_docs_describe_local_workspace_and_onshape_export() -> None:
     assert "## Onshape package export" in readme
     assert "Download Onshape package" in readme
     assert "not a print-ready STL" in readme
+
+
+def test_onshape_workflow_manual_exists_and_is_linked() -> None:
+    readme = Path("README.md").read_text()
+    manual = Path("docs/onshape_workflow_manual.md")
+    pdf = Path("output/pdf/Wind_Turbine_Design_Lab_Onshape_Workflow_Manual.pdf")
+
+    assert manual.exists()
+    assert pdf.exists()
+    assert "Onshape workflow manual" in readme
+    assert pdf.as_posix() in readme

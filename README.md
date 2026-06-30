@@ -165,6 +165,10 @@ This is not a print-ready STL. It is a CAD starter package for Onshape or a
 similar CAD tool. Students still need to create the 3D loft, hub connector,
 wall thickness, root reinforcement, and final print setup.
 
+For step-by-step CAD instructions, use the
+[Onshape workflow manual](output/pdf/Wind_Turbine_Design_Lab_Onshape_Workflow_Manual.pdf).
+The editable source is in [`docs/onshape_workflow_manual.md`](docs/onshape_workflow_manual.md).
+
 ## Quality checks
 
 ```bash
