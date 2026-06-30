@@ -301,49 +301,197 @@ Before Loft, check:
 If Solid Loft fails, try Surface Loft first. If Surface Loft works but Solid Loft
 does not, at least one profile may not be a clean closed region.
 
-## 10. Add the hub connection
+## 10. Understand what `blade_planform.dxf` is for
 
-The simulator exports the blade geometry, not the final hub. Students must add a
-real mount that matches their generator shaft and competition rules.
+`blade_planform.dxf` is not required for Loft. The Loft comes from the individual
+airfoil section DXFs.
 
-Common classroom approach:
+Use `blade_planform.dxf` as a top-view reference:
 
-1. Create a cylinder for the hub.
-2. Add holes or shaft adapter geometry to match the generator.
-3. Extend or thicken the blade root so it joins the hub safely.
-4. Fillet the root connection if possible.
-5. Check that the full rotor diameter does not exceed the rule limit.
+1. Open the `blade_planform.dxf` tab in Onshape to see the intended blade outline.
+2. Return to `Part Studio 1`.
+3. Rotate the view toward Top view.
+4. Compare the 3D Lofted blade to the planform outline.
 
-For a 1 m diameter rule, the final rotor radius must be no more than 50 cm from
-the center to the farthest blade tip.
+If the Lofted blade is much wider, shorter, longer, or shifted sideways compared
+with the planform, check the imported DXF units and the profile alignment before
+continuing.
 
-## 11. Create three blades
+## 11. Add a beginner hub
 
-After one blade and hub connection are correct:
+The simulator exports blade geometry, not the final hub. You must add a real
+mount that matches the generator shaft and competition rules.
 
-1. Use Circular Pattern.
-2. Select the blade body or blade feature.
-3. Use the hub axis as the rotation axis.
-4. Set instance count to `3`.
-5. The blades should be spaced 120 degrees apart.
+Important: Do not create the hub sketch on a Mate connector. Mate connectors are
+useful later for assemblies, but they confuse the beginner workflow. Create the
+hub sketch on a real plane near the root, usually `S1 Root`, `Right`, `Front`, or
+`Top`, depending on which view gives a clean circle at the rotor center.
 
-Check that the three-blade pattern does not overlap the hub, shaft, or frame.
+### Beginner hub dimensions
 
-## 12. Export STL from Onshape
+These are safe starting dimensions for a classroom test part. Change them to
+match the real generator shaft.
+
+| Feature | Suggested value | Notes |
+| --- | ---: | --- |
+| Hub outside diameter | `8 cm` to `12 cm` | Large enough to grip the blade roots. |
+| Shaft hole diameter | measured shaft + clearance | Example: `0.8 cm` if the shaft is near 8 mm. |
+| Hub thickness | `2 cm` to `4 cm` | Thicker hubs are easier to print and stronger. |
+| Root overlap | `0.5 cm` to `2 cm` | Let blade roots enter the hub area. |
+
+### Create the hub sketch
+
+1. Cancel any open sketch that is on `Mate connector`.
+2. If a blank `Sketch 7` was created on `Mate connector`, delete it.
+3. Select a real plane near the root, such as `S1 Root` or `Right`.
+4. Right-click the plane and choose **New sketch**.
+5. Click **View normal to** so the sketch is flat on the screen.
+6. Use the Circle tool to draw the outside hub circle.
+7. Use the Circle tool again to draw the shaft hole circle in the center.
+8. Add dimensions for both circles.
+9. Confirm the sketch with the green check mark.
+
+If the circle is not centered on the intended rotor axis, move it before
+extruding. The future 3-blade pattern will rotate around this hub center.
+
+### Extrude the hub
+
+1. Start **Extrude**.
+2. Select the ring-shaped area between the outside circle and shaft hole.
+3. Operation: choose **Add** if it touches the blade, or **New** if it does not.
+4. Distance: start with `2 cm` or `3 cm`.
+5. If it extrudes in the wrong direction, flip the arrow.
+6. Accept the feature.
+
+If the hub is a separate part, use **Boolean > Union** later to combine the hub
+and blade bodies.
+
+## 12. Reinforce and connect the blade root
+
+The blade root is where most classroom prints fail. Before making three blades,
+make sure one blade is physically connected to the hub.
+
+Use one of these beginner methods:
+
+- Make the hub cylinder overlap the root of the blade slightly.
+- Add a small rectangular or rounded root bridge from the blade root into the hub.
+- Use **Boolean > Union** to merge the blade and hub if they are separate parts.
+- Add a small fillet at the root if Onshape can calculate it cleanly.
+
+Do not leave the blade touching the hub at only a thin edge. It may look correct
+on screen but break during wind-tunnel testing.
+
+## 13. Create three blades with Circular Pattern
+
+After one blade and hub connection look correct, make the three-blade rotor.
+
+Recommended beginner settings:
+
+```text
+Tool: Circular Pattern
+Pattern type: `Part pattern`
+Quantity: `3`
+Angle: `360 deg`
+Equal spacing: on
+Axis: hub center axis
+```
+
+Steps:
+
+1. Start **Circular Pattern**.
+2. Set Pattern type: `Part pattern`.
+3. Select the blade part. If the blade and hub are already one part, select the
+   part carefully and check the preview. Patterning the hub can create duplicate
+   hubs, so it is often easier to pattern only the blade first.
+4. Click the Axis selection box.
+5. Select the cylindrical face of the hub or the circular edge of the shaft hole.
+6. Set Quantity: `3`.
+7. Set Angle: `360 deg`.
+8. Confirm that the preview shows blades 120 degrees apart.
+9. Accept the feature.
+
+If the pattern rotates around the wrong point, undo and choose the hub cylinder
+or shaft-hole circular edge as the axis again.
+
+If you see an `S7 Tip` plane, remember: S7 Tip plane is not an airfoil profile.
+Only select actual blade or hub parts for Circular Pattern, not the blue section
+planes.
+
+## 14. Combine the final rotor parts
+
+The final export should usually be one clean rotor part.
+
+1. If the patterned blades and hub are separate parts, start **Boolean**.
+2. Choose **Union**.
+3. Select the hub and all three blade bodies.
+4. Accept the feature.
+5. Check the Parts list. Ideally there should be one final rotor part.
+
+If Boolean Union fails, one or more parts may not be touching. Increase the hub
+overlap or add a root bridge, then try Union again.
+
+## 15. Check diameter and printability
+
+Before exporting STL, check the model against the competition rule and printer
+limits.
+
+For a 1 m diameter rule:
+
+```text
+Maximum radius from rotor center to farthest tip = 50 cm
+Maximum full diameter tip-to-tip = 100 cm
+```
+
+Use Onshape's Measure tool:
+
+1. Measure from the hub center to the farthest blade tip.
+2. Confirm the radius is not greater than `50 cm`.
+3. Measure the shaft hole diameter.
+4. Check the hub thickness.
+5. Rotate the model and inspect root connections from both sides.
+
+Printability checklist:
+
+- no paper-thin root connection;
+- no accidental duplicate hub bodies;
+- no floating blade that is not joined to the hub;
+- shaft hole is not smaller than the real shaft;
+- blade tips are not outside the competition diameter;
+- there is enough clearance for the wind-tunnel frame.
+
+## 16. Export STL from Onshape
 
 When the CAD model is ready:
 
-1. Right-click the finished Part or Assembly.
-2. Choose Export.
-3. Select STL.
-4. Use millimetres if your slicer expects millimetres.
-5. Open the STL in your slicer.
-6. Check print orientation, supports, wall thickness, and root strength.
+1. In the left Parts list, right-click the final rotor part.
+2. Choose **Export**.
+3. Export format: `STL`.
+4. STL format: choose `Binary STL` unless your slicer requires ASCII.
+5. Units: choose millimetres if your slicer expects millimetres.
+6. Resolution: choose Fine for a smoother airfoil, or Medium for a smaller file.
+7. Confirm the export and download the `.stl` file.
 
-Always inspect the STL before printing. A successful Onshape export does not
-guarantee the part is strong enough for testing.
+Open the STL in your slicer before printing. Check the real dimensions again in
+the slicer because unit mistakes are common.
 
-## 13. Troubleshooting
+## 17. Slicer checks before printing
+
+A successful STL export does not guarantee the blade is strong enough.
+
+Before printing, check:
+
+- scale is correct;
+- rotor diameter is still within the rule;
+- hub hole size matches the generator shaft;
+- print orientation does not make the root weak;
+- support material will not damage the airfoil surface too much;
+- infill and wall count are high enough near the hub;
+- the blade root has enough material to survive startup torque.
+
+For a first classroom prototype, print only one small section or one blade first
+if time and budget allow. Then print the full three-blade rotor.
+
+## 18. Troubleshooting
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
@@ -354,8 +502,11 @@ guarantee the part is strong enough for testing.
 | Blade outline does not match planform | Profiles are shifted sideways | Use `blade_planform.dxf` as a top-view reference and realign profiles. |
 | Final part is too large | Rotor diameter or unit conversion issue | Check radius and units before exporting STL. |
 | Root breaks easily | Hub connection too thin | Add root reinforcement, fillets, or a thicker hub mount. |
+| Cannot select the last plane | The last plane is only a reference plane | Select sketch faces or parts, not blue planes. |
+| Circular Pattern duplicates the hub | Hub and blade were already one part | Pattern only blade bodies, or accept duplicates only if they union cleanly. |
+| STL opens at the wrong size | STL units were interpreted incorrectly | Export in millimetres and verify dimensions in the slicer. |
 
-## 14. Recommended beginner workflow
+## 19. Recommended beginner workflow
 
 For the first successful build, do not try to optimize everything.
 
@@ -369,7 +520,7 @@ For the first successful build, do not try to optimize everything.
 8. Print one small test if possible.
 9. Return to the simulator and improve one variable at a time.
 
-## 15. What the simulator does not do yet
+## 20. What the simulator does not do yet
 
 The current project does not automatically create:
 

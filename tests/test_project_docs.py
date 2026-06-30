@@ -101,3 +101,17 @@ def test_onshape_manual_explains_split_section_profiles() -> None:
     assert "one ready-to-insert DXF per blade section" in manual
     assert "Do not use `section_profiles.dxf` as the main beginner workflow" in manual
     assert "do not need to delete the other sections" in manual
+
+
+def test_onshape_manual_covers_beginner_to_stl_workflow() -> None:
+    manual = Path("docs/onshape_workflow_manual.md").read_text()
+
+    assert "Do not create the hub sketch on a Mate connector" in manual
+    assert "Beginner hub dimensions" in manual
+    assert "Circular Pattern" in manual
+    assert "Pattern type: `Part pattern`" in manual
+    assert "Quantity: `3`" in manual
+    assert "S7 Tip plane is not an airfoil profile" in manual
+    assert "Export format: `STL`" in manual
+    assert "Binary STL" in manual
+    assert "Open the STL in your slicer before printing" in manual

@@ -47,6 +47,19 @@ def test_onshape_package_contains_expected_files() -> None:
     assert metadata["blade_count"] == 3
 
 
+def test_onshape_package_build_guide_mentions_stl_workflow() -> None:
+    package = build_onshape_package(_sample_input(), design_name="student blade")
+
+    with zipfile.ZipFile(BytesIO(package)) as archive:
+        guide = archive.read("onshape_build_guide.md").decode()
+
+    assert "Beginner hub" in guide
+    assert "Circular Pattern" in guide
+    assert "Quantity: `3`" in guide
+    assert "Export format: `STL`" in guide
+    assert "Open the STL in your slicer before printing" in guide
+
+
 def test_blade_geometry_csv_contains_sections_and_airfoils() -> None:
     csv_text = blade_geometry_csv(_sample_input())
 

@@ -363,6 +363,44 @@ This package is a CAD starting point for a classroom wind-turbine blade.
 6. Use a circular pattern for {metadata["blade_count"]} blades.
 7. Check the final rotor diameter is not greater than {metadata["rotor_diameter_m"]:.2f} m.
 
+## Beginner hub
+
+Do not create the hub sketch on a Mate connector. Create the hub sketch on a real
+plane near the root, such as `S1 Root`, `Right`, `Front`, or `Top`.
+
+Suggested starting dimensions:
+
+- outside hub diameter: `8 cm` to `12 cm`;
+- shaft hole diameter: measured shaft plus clearance;
+- hub thickness: `2 cm` to `4 cm`;
+- root overlap: `0.5 cm` to `2 cm`.
+
+Sketch two concentric circles, then Extrude the ring. Use Boolean Union if the
+hub and blade are separate parts.
+
+## Three-blade pattern
+
+Use Circular Pattern after one blade and the hub connection look correct.
+
+```text
+Pattern type: `Part pattern`
+Quantity: `3`
+Angle: `360 deg`
+Axis: hub cylinder or shaft-hole circular edge
+```
+
+If the package shows an extra tip plane, remember that blue section planes are
+references only. Pattern actual parts, not planes.
+
+## Export STL
+
+1. Right-click the final rotor part in the Parts list.
+2. Choose Export.
+3. Export format: `STL`.
+4. Choose Binary STL unless your slicer requires ASCII.
+5. Use millimetres if your slicer expects millimetres.
+6. Open the STL in your slicer before printing.
+
 ## Important warning
 
 This export is not a finished certified STL. It is a controlled geometry package
