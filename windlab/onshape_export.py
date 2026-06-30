@@ -13,7 +13,9 @@ from windlab.airfoil_geometry import airfoil_profile_points
 from windlab.models import BladeSection, SimulationInput
 from windlab.section_airfoils import get_section_airfoil
 
-ONSHAPE_LOFT_PROFILE_POINT_COUNT = 36
+ONSHAPE_LOFT_PROFILE_POINT_COUNT = 80
+ONSHAPE_LOFT_PROFILE_VERTEX_COUNT = 36
+MIN_ONSHAPE_TRAILING_EDGE_THICKNESS_CM = 0.10
 
 
 def _fallback_airfoil_name(inputs: SimulationInput) -> str:
@@ -198,6 +200,86 @@ def _rotate_points(
     ]
 
 
+def _distance(point_a: tuple[float, float], point_b: tuple[float, float]) -> float:
+    return ((point_b[0] - point_a[0]) ** 2 + (point_b[1] - point_a[1]) ** 2) ** 0.5
+
+
+def _with_printable_trailing_edge(
+    points: list[tuple[float, float]],
+    *,
+    chord_cm: float,
+) -> list[tuple[float, float]]:
+    """Keep the closing trailing-edge segment large enough for CAD lofts."""
+
+    if len(points) < 3:
+        return points
+
+    upper_trailing_edge = points[0]
+    lower_trailing_edge = points[-1]
+    current_thickness_cm = _distance(upper_trailing_edge, lower_trailing_edge)
+    target_thickness_cm = min(
+        MIN_ONSHAPE_TRAILING_EDGE_THICKNESS_CM,
+        chord_cm * 0.10,
+    )
+    if current_thickness_cm >= target_thickness_cm:
+        return points
+
+    midpoint_x = (upper_trailing_edge[0] + lower_trailing_edge[0]) / 2.0
+    midpoint_y = (upper_trailing_edge[1] + lower_trailing_edge[1]) / 2.0
+    return [
+        (midpoint_x, midpoint_y + target_thickness_cm / 2.0),
+        *points[1:-1],
+        (midpoint_x, midpoint_y - target_thickness_cm / 2.0),
+    ]
+
+
+def _resample_closed_points(
+    points: list[tuple[float, float]],
+    *,
+    target_count: int,
+) -> list[tuple[float, float]]:
+    """Return a closed profile with evenly spaced points and stable topology."""
+
+    if target_count < 3 or len(points) < 3:
+        return points
+
+    segment_lengths = [
+        _distance(points[index], points[(index + 1) % len(points)]) for index in range(len(points))
+    ]
+    perimeter = sum(segment_lengths)
+    if perimeter <= 0.0:
+        return points
+
+    resampled: list[tuple[float, float]] = []
+    segment_index = 0
+    distance_before_segment = 0.0
+    for sample_index in range(target_count):
+        target_distance = sample_index * perimeter / target_count
+        while (
+            distance_before_segment + segment_lengths[segment_index] < target_distance
+            and segment_index < len(segment_lengths) - 1
+        ):
+            distance_before_segment += segment_lengths[segment_index]
+            segment_index += 1
+
+        segment_length = segment_lengths[segment_index]
+        if segment_length <= 0.0:
+            resampled.append(points[segment_index])
+            continue
+
+        fraction = (target_distance - distance_before_segment) / segment_length
+        start = points[segment_index]
+        end = points[(segment_index + 1) % len(points)]
+        resampled.append(
+            (
+                start[0] + fraction * (end[0] - start[0]),
+                start[1] + fraction * (end[1] - start[1]),
+            )
+        )
+
+    return resampled
+
+
 def section_profile_dxf(
     section: BladeSection,
     *,
@@ -214,7 +296,11 @@ def section_profile_dxf(
             point_count=ONSHAPE_LOFT_PROFILE_POINT_COUNT,
         )
     ]
-    points = _rotate_points(centered_points, angle_deg=section.twist_angle_deg)
+    printable_points = _resample_closed_points(
+        _with_printable_trailing_edge(centered_points, chord_cm=chord_cm),
+        target_count=ONSHAPE_LOFT_PROFILE_VERTEX_COUNT,
+    )
+    points = _rotate_points(printable_points, angle_deg=section.twist_angle_deg)
     return (
         _dxf_header()
         + _dxf_polyline(points, layer=f"section_{index + 1}_profile", closed=True)
@@ -290,7 +376,7 @@ def _section_profiles_readme(inputs: SimulationInput) -> str:
         "Each DXF in this folder contains one airfoil profile only.",
         "Profiles are scaled to the section chord in centimetres, centred around the",
         "sketch origin, pre-rotated by the section twist angle, and simplified to",
-        "a consistent loft-safe vertex count for Onshape.",
+        "a loft-safe vertex count with printable trailing-edge thickness for Onshape.",
         "",
         "Recommended Onshape workflow:",
         "",

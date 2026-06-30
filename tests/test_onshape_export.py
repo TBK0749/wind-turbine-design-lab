@@ -88,6 +88,17 @@ def _has_self_intersection(points: list[tuple[float, float]]) -> bool:
     return False
 
 
+def _minimum_edge_length(points: list[tuple[float, float]]) -> float:
+    return min(
+        (
+            (points[(index + 1) % len(points)][0] - points[index][0]) ** 2
+            + (points[(index + 1) % len(points)][1] - points[index][1]) ** 2
+        )
+        ** 0.5
+        for index in range(len(points))
+    )
+
+
 def test_onshape_package_contains_expected_files() -> None:
     package = build_onshape_package(_sample_input(), design_name="student blade")
 
@@ -200,7 +211,7 @@ def test_individual_section_profiles_use_loft_safe_vertex_counts() -> None:
         vertex_counts = {_dxf_lwpolyline_vertex_count(text) for text in profiles.values()}
 
         assert len(vertex_counts) == 1
-        assert 40 <= vertex_counts.pop() <= 80
+        assert 32 <= vertex_counts.pop() <= 80
 
 
 def test_individual_section_profiles_are_clean_for_lofting() -> None:
@@ -220,3 +231,15 @@ def test_individual_section_profiles_are_clean_for_lofting() -> None:
 
         assert len(point_counts) == 1
         assert len(area_signs) == 1
+
+
+def test_individual_section_profiles_avoid_tiny_sliver_edges() -> None:
+    """Avoid sub-millimetre DXF edges that make Onshape Solid Loft fragile."""
+
+    for preset in blade_preset_options():
+        profiles = individual_section_profile_dxfs(preset_to_simulation_input(preset))
+
+        for dxf in profiles.values():
+            points = _dxf_lwpolyline_points(dxf)
+
+            assert _minimum_edge_length(points) >= 0.05
