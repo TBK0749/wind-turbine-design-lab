@@ -18,26 +18,31 @@ def render_quick_start_guide() -> None:
    air density if known, and the fixed trial duration.
 2. **Enter the blade geometry.** Use the section table for measured blade stations:
    position, chord, local twist, station airfoil, and the airfoil's role.
-3. **Choose or review airfoils.** Section-table mode can assign different NACA
+3. **Use a starter preset if helpful.** The Design workspace includes five
+   3-blade presets for a maximum 1 m rotor diameter. Treat them as starting
+   points, not guaranteed winners.
+4. **Choose or review airfoils.** Section-table mode can assign different NACA
    airfoils along the blade. The model blends root, mid-span, and tip effects.
    Simple root/tip mode uses one global airfoil family.
-4. **Check the build preview.** Confirm the chord distribution and pitch-plus-twist
+5. **Check the build preview.** Confirm the chord distribution and pitch-plus-twist
    angles before cutting material.
-5. **Review the predicted score.** Focus on competition power in mW, load voltage,
+6. **Review the predicted score.** Focus on competition power in mW, load voltage,
    load current, RPM, Cp, TSR, and stall warnings.
-6. **Set blade material and mass.** Use preset materials, or enable custom
+7. **Set blade material and mass.** Use preset materials, or enable custom
    material properties when you know the density, roughness, or durability.
    You may enter mass manually or estimate it from density and blade thickness.
-7. **Change one variable at a time.** Adjust one geometry, airfoil, generator, or
+8. **Change one variable at a time.** Adjust one geometry, airfoil, generator, or
    load setting, then compare the result.
-8. **Use advanced calibration only when needed.** Teachers or teams can open
+9. **Use advanced calibration only when needed.** Teachers or teams can open
    **Advanced calibration** to match measured generator, air, and loss values.
    Leave it unchanged for normal classroom comparisons.
-9. **Build and test.** Place the turbine in front of the wind source for the fixed
+10. **Export CAD reference files if needed.** Use **Download Onshape package**
+   when you want CSV and DXF reference files for rebuilding the blade in CAD.
+11. **Build and test.** Place the turbine in front of the wind source for the fixed
    trial time and record voltage, current, RPM if available, and mW.
-10. **Log measured results.** Use the **Calibration** tab to enter measured RPM
+12. **Log measured results.** Use the **Calibration** tab to enter measured RPM
    and mW after a real prototype test. Export the worksheet for your notebook.
-11. **Explain the difference.** Use the glossary to connect design changes to the
+13. **Explain the difference.** Use the glossary to connect design changes to the
    measured output.
 """
     )
@@ -46,6 +51,46 @@ def render_quick_start_guide() -> None:
         "The simulator is a learning tool. It ranks ideas and explains trade-offs, "
         "but measured competition data is still the final judge.",
         icon="ℹ️",
+    )
+
+    st.subheader("Local design workspace")
+    st.write(
+        "The Design workspace keeps student work on the local computer. It does "
+        "not require an account, cloud database, or paid service."
+    )
+    st.markdown(
+        """
+- **Autosave:** the current design is saved to `user_data/windlab.sqlite`.
+- **Refresh recovery:** after refreshing the browser, the latest autosaved design
+  should return automatically.
+- **Undo/Redo:** use the app buttons for simulator changes. Browser Command+Z
+  does not reliably undo Streamlit widget changes.
+- **Named saves:** save several candidate designs and load them later on the
+  same computer.
+- **Blade presets:** load five 3-blade starter presets for the 1 m maximum
+  rotor-diameter rule, then edit the table for your own experiment.
+"""
+    )
+
+    st.subheader("Onshape package export")
+    st.write(
+        "Use this when students want to rebuild a chosen blade in Onshape or "
+        "another CAD tool instead of copying every table value by hand."
+    )
+    st.markdown(
+        """
+Click **Download Onshape package** in the export panel. The ZIP contains:
+
+- `blade_geometry.csv` for station position, chord, twist, airfoil, and role;
+- `airfoil_sections.csv` for airfoil metadata and Reynolds-number guidance;
+- `blade_planform.dxf` for the top-view blade outline;
+- `section_profiles.dxf` for scaled airfoil profiles;
+- `design_metadata.json` for simulator settings;
+- `onshape_build_guide.md` for the CAD rebuild workflow.
+
+This package is **not a print-ready STL**. Students still need to create the 3D
+loft, hub connector, wall thickness, reinforcement, and final print settings in CAD.
+"""
     )
 
     st.subheader("Local installation guide")
@@ -307,6 +352,32 @@ def render_key_terms_glossary() -> None:
             "A switch that enables or disables one simplified correction, such as airfoil "
             "efficiency, hub-area loss, Reynolds correction, generator power capping, or "
             "generator load feedback.",
+        ),
+        (
+            "Local design workspace",
+            "The app area for Undo/Redo, autosave, named saves, loading presets, and "
+            "recovering the latest design after refresh. It stores data locally in "
+            "`user_data/windlab.sqlite`.",
+        ),
+        (
+            "Blade preset",
+            "A prebuilt blade geometry table. Presets are useful starting points for "
+            "comparison, but they are not guaranteed to win before real testing.",
+        ),
+        (
+            "Onshape package",
+            "A ZIP export containing CSV, DXF, JSON, and a Markdown guide for rebuilding "
+            "the selected blade in CAD. It is not a finished STL.",
+        ),
+        (
+            "DXF",
+            "A 2D drawing exchange file used by CAD tools. This app exports DXF outlines "
+            "and airfoil profiles as reference sketches.",
+        ),
+        (
+            "STL",
+            "A triangle mesh file often sent to slicer software for 3D printing. The app "
+            "does not generate final STL files yet.",
         ),
         (
             "BEMT-lite",

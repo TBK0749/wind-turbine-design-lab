@@ -59,3 +59,15 @@ def test_physics_docs_describe_source_backed_airfoil_limits() -> None:
     assert "not certify exact measured power" in physics_doc
     assert "Source-backed airfoil expansion" in paper_notes
     assert "not raw measured polar imports" in paper_notes
+
+
+def test_docs_describe_local_workspace_and_onshape_export() -> None:
+    readme = Path("README.md").read_text()
+
+    assert "## Local design workspace" in readme
+    assert "user_data/windlab.sqlite" in readme
+    assert "Undo/Redo" in readme
+    assert "five 3-blade starter presets" in readme
+    assert "## Onshape package export" in readme
+    assert "Download Onshape package" in readme
+    assert "not a print-ready STL" in readme

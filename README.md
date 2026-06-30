@@ -27,6 +27,11 @@ blade geometry, mass, and material affect estimated turbine performance.
 - Log measured prototype trials in the Phase 2 Calibration scaffold.
 - Compare predicted vs measured RPM and mW, then export a calibration worksheet.
 - Run completely on the user's computer.
+- Autosave the current design to a local SQLite database on the user's computer.
+- Undo/Redo recent simulator changes inside the app.
+- Save and load named local designs without accounts or cloud storage.
+- Load five 3-blade starter presets for a maximum 1 m rotor diameter.
+- Download an Onshape package with CSV, DXF, JSON, and a Markdown build guide.
 
 ## Local installation guide
 
@@ -125,6 +130,40 @@ JSON, and experiment files outside the project folder before replacing it.
   project folder and avoid editing the project source files.
 - Do not click Deploy. This project is meant to run locally unless your teacher
   explicitly asks you to publish it online.
+
+## Local design workspace
+
+The app stores local saved designs in `user_data/windlab.sqlite`. This database
+belongs to the computer running the app and is ignored by Git, so it is not
+uploaded to GitHub when students pull or push code.
+
+Use the **Design workspace** panel at the top of the Design Lab to:
+
+- use **Undo/Redo** for recent simulator changes;
+- restore the current design after a browser refresh;
+- reset to the default competition design;
+- save and load named designs on the same computer;
+- load five 3-blade starter presets for the 1 m maximum rotor-diameter rule.
+
+The five presets are starting points for experiments, not guaranteed winning
+designs. Students should still compare predicted mW, print quality, startup
+behavior, and measured wind-tunnel results.
+
+## Onshape package export
+
+Use **Download Onshape package** in the export panel to download a ZIP file for
+CAD rebuilding. The package contains:
+
+- `blade_geometry.csv` — station, position, chord, twist, airfoil, and role;
+- `airfoil_sections.csv` — airfoil metadata and recommended Reynolds ranges;
+- `blade_planform.dxf` — a top-view blade outline in centimetres;
+- `section_profiles.dxf` — scaled section airfoil profiles in centimetres;
+- `design_metadata.json` — simulator settings for the export;
+- `onshape_build_guide.md` — step-by-step notes for rebuilding the blade.
+
+This is not a print-ready STL. It is a CAD starter package for Onshape or a
+similar CAD tool. Students still need to create the 3D loft, hub connector,
+wall thickness, root reinforcement, and final print setup.
 
 ## Quality checks
 
