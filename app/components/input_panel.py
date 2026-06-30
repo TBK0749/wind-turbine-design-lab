@@ -72,6 +72,29 @@ def _sections_from_frame(frame: pd.DataFrame) -> tuple[BladeSection, ...]:
     return tuple(sorted(sections, key=lambda section: section.position_m))
 
 
+def _resolve_rotor_radius_for_sections(
+    rotor_radius_m: float,
+    sections: tuple[BladeSection, ...],
+) -> tuple[float, str | None]:
+    """Return a rotor radius that can contain the section table."""
+
+    if not sections:
+        return rotor_radius_m, None
+
+    final_position_m = sections[-1].position_m
+    if final_position_m <= rotor_radius_m:
+        return rotor_radius_m, None
+
+    warning = (
+        f"Final blade section is {final_position_m * 100.0:.1f} cm, but the rotor radius "
+        f"is {rotor_radius_m * 100.0:.1f} cm. The simulator is using "
+        f"{final_position_m * 100.0:.1f} cm for this run so the blade table remains "
+        "physically valid. To use the smaller blade length, change the final Position "
+        "in the blade geometry table to match the rotor radius."
+    )
+    return final_position_m, warning
+
+
 def render_input_panel() -> SimulationInput:
     """Render grouped controls and return validated inputs."""
 
@@ -187,6 +210,12 @@ def render_input_panel() -> SimulationInput:
         root_chord = blade_sections[0].chord_m if blade_sections else 0.09
         tip_chord = blade_sections[-1].chord_m if blade_sections else 0.02
         twist = blade_sections[0].twist_angle_deg if blade_sections else 20.0
+        rotor_radius, radius_warning = _resolve_rotor_radius_for_sections(
+            float(rotor_radius),
+            blade_sections,
+        )
+        if radius_warning:
+            st.warning(radius_warning, icon="⚠️")
     else:
         st.subheader("Simple blade geometry")
         root_chord = st.number_input(
