@@ -17,6 +17,12 @@ from app.components.blade_geometry import render_blade_geometry  # noqa: E402
 from app.components.calibration_lab import render_calibration_lab  # noqa: E402
 from app.components.charts import render_performance_charts  # noqa: E402
 from app.components.design_compare import render_design_comparison  # noqa: E402
+from app.components.design_workspace import (  # noqa: E402
+    autosave_current_design,
+    current_design_name,
+    record_design_snapshot,
+    render_design_workspace,
+)
 from app.components.input_panel import render_input_panel  # noqa: E402
 from app.components.learning_guide import (  # noqa: E402
     render_key_terms_glossary,
@@ -27,6 +33,7 @@ from app.components.result_cards import (  # noqa: E402
     render_competition_cards,
     render_result_cards,
 )
+from windlab.onshape_export import build_onshape_package  # noqa: E402
 from windlab.simulator import (  # noqa: E402
     performance_curve,
     result_as_csv,
@@ -50,8 +57,12 @@ design_tab, calibration_tab, guide_tab, glossary_tab = st.tabs(
 )
 
 with design_tab:
+    design_store = render_design_workspace()
+
     try:
         simulation_input = render_input_panel()
+        record_design_snapshot(simulation_input)
+        autosave_current_design(simulation_input, design_store)
         simulation_result = simulate(simulation_input)
     except (ValidationError, ValueError) as error:
         st.error(str(error))
@@ -113,7 +124,17 @@ with design_tab:
             mime="application/json",
             width="stretch",
         )
-        st.caption("Download design sheet exports a printable Markdown build report.")
+        st.download_button(
+            "Download Onshape package",
+            build_onshape_package(simulation_input, design_name=current_design_name()),
+            file_name="wind_turbine_onshape_package.zip",
+            mime="application/zip",
+            width="stretch",
+        )
+        st.caption(
+            "Download design sheet exports a printable Markdown build report. "
+            "Download Onshape package exports a CAD reference ZIP with CSV and DXF files."
+        )
 
     render_design_comparison(simulation_input, simulation_result)
 

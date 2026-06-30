@@ -131,13 +131,7 @@ def _dxf_footer() -> str:
 
 def _dxf_text(label: str, x: float, y: float, height: float = 1.5) -> str:
     return (
-        "0\nTEXT\n"
-        "8\nlabels\n"
-        f"10\n{x:.4f}\n"
-        f"20\n{y:.4f}\n"
-        "30\n0.0000\n"
-        f"40\n{height:.4f}\n"
-        f"1\n{label}\n"
+        f"0\nTEXT\n8\nlabels\n10\n{x:.4f}\n20\n{y:.4f}\n30\n0.0000\n40\n{height:.4f}\n1\n{label}\n"
     )
 
 
@@ -166,12 +160,9 @@ def blade_planform_dxf(inputs: SimulationInput) -> str:
     """Return a top-view blade outline DXF in centimetres."""
 
     sections = _sections_for_export(inputs)
-    leading_edge = [
-        (section.position_m * 100.0, section.chord_m * 50.0) for section in sections
-    ]
+    leading_edge = [(section.position_m * 100.0, section.chord_m * 50.0) for section in sections]
     trailing_edge = [
-        (section.position_m * 100.0, -section.chord_m * 50.0)
-        for section in reversed(sections)
+        (section.position_m * 100.0, -section.chord_m * 50.0) for section in reversed(sections)
     ]
     outline = leading_edge + trailing_edge
     return (

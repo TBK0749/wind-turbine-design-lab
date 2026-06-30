@@ -121,6 +121,22 @@ def test_airfoil_preview_and_design_comparison_render() -> None:
     assert any("Design name" in text_input.label for text_input in app.text_input)
 
 
+def test_design_workspace_controls_are_available() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    assert not app.exception
+    assert any(section.value == "Design workspace" for section in app.subheader)
+    assert any(button.label == "Undo last change" for button in app.button)
+    assert any(button.label == "Redo" for button in app.button)
+    assert any(button.label == "Save design" for button in app.button)
+    assert any(button.label == "Load design" for button in app.button)
+    assert any(button.label == "Load preset" for button in app.button)
+    assert any(selectbox.label == "Blade preset" for selectbox in app.selectbox)
+    assert any("local SQLite" in text.value for text in app.caption)
+    assert any("Onshape package" in text.value for text in app.caption)
+
+
 def test_bemt_lite_model_mode_is_visible() -> None:
     app_path = Path(__file__).parents[1] / "app" / "main.py"
     app = AppTest.from_file(str(app_path), default_timeout=15).run()
