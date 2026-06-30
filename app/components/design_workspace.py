@@ -15,6 +15,7 @@ REDO_HISTORY_KEY = "windlab_redo_history"
 DESIGN_VERSION_KEY = "windlab_design_version"
 DESIGN_STORE_KEY = "windlab_design_store"
 WORKSPACE_NAME_KEY = "windlab_workspace_design_name"
+WORKSPACE_NAME_INPUT_KEY = "windlab_workspace_design_name_input"
 MAX_HISTORY = 50
 
 
@@ -193,7 +194,12 @@ def render_design_workspace() -> DesignStore | None:
 
     save_col, load_col, preset_col = st.columns(3)
     with save_col:
-        st.text_input("Workspace design name", key=WORKSPACE_NAME_KEY)
+        entered_name = st.text_input(
+            "Workspace design name",
+            value=current_design_name(),
+            key=widget_key(WORKSPACE_NAME_INPUT_KEY),
+        )
+        st.session_state[WORKSPACE_NAME_KEY] = entered_name
         if st.button("Save design", width="stretch"):
             if store is None:
                 st.warning("Local design database is not available.")

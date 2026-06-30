@@ -137,6 +137,16 @@ def test_design_workspace_controls_are_available() -> None:
     assert any("Onshape package" in text.value for text in app.caption)
 
 
+def test_load_preset_does_not_modify_instantiated_widget_state() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    load_preset_button = next(button for button in app.button if button.label == "Load preset")
+    app = load_preset_button.click().run()
+
+    assert not app.exception
+
+
 def test_bemt_lite_model_mode_is_visible() -> None:
     app_path = Path(__file__).parents[1] / "app" / "main.py"
     app = AppTest.from_file(str(app_path), default_timeout=15).run()
