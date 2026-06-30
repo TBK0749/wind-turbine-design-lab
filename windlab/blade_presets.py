@@ -45,8 +45,8 @@ _PRESETS: tuple[BladePreset, ...] = (
         name="Balanced Competition 50 cm",
         description=(
             "A balanced three-blade starting point for a maximum 1 m rotor diameter. "
-            "It keeps a thick root for strength, SG-series lift sections near mid-span, "
-            "and a thinner low-drag tip."
+            "It uses eight smooth CAD stations, a thick root for strength, SG-series "
+            "lift sections near mid-span, and a thinner low-drag tip."
         ),
         tradeoffs=(
             "Good first design for comparing changes one variable at a time.",
@@ -55,10 +55,12 @@ _PRESETS: tuple[BladePreset, ...] = (
         ),
         sections=(
             _section(6.0, 9.0, 20.0, "NACA 4418"),
-            _section(14.0, 7.5, 15.0, "SG6040"),
-            _section(24.0, 5.8, 10.0, "SG6043"),
-            _section(34.0, 4.2, 6.0, "SG6043"),
-            _section(43.0, 3.0, 2.0, "NACA 2412"),
+            _section(12.0, 8.2, 17.0, "NACA 4418"),
+            _section(18.0, 7.2, 14.0, "SG6040"),
+            _section(25.0, 6.0, 11.0, "SG6043"),
+            _section(32.0, 4.8, 7.0, "SG6043"),
+            _section(39.0, 3.6, 4.0, "NACA 2412"),
+            _section(45.0, 2.6, 2.0, "NACA 2412"),
             _section(50.0, 1.8, 0.0, "E387"),
         ),
     ),
@@ -66,19 +68,21 @@ _PRESETS: tuple[BladePreset, ...] = (
         name="High Starting Torque",
         description=(
             "A wider, higher-twist blade intended to start more easily in a low-speed "
-            "classroom wind tunnel."
+            "classroom wind tunnel while keeping station-to-station Loft changes smooth."
         ),
         tradeoffs=(
             "Higher starting torque helps overcome generator cogging and bearing friction.",
-            "Extra chord and high-lift sections can increase drag after it reaches speed.",
+            "Extra chord can increase drag after it reaches speed.",
             "Useful when the turbine struggles to self-start at 3.6 m/s.",
         ),
         sections=(
             _section(6.0, 10.5, 24.0, "NACA 4418"),
-            _section(14.0, 9.0, 18.0, "SG6040"),
-            _section(24.0, 7.0, 12.0, "S1223"),
-            _section(34.0, 5.0, 7.0, "SG6043"),
-            _section(43.0, 3.4, 3.0, "NACA 2412"),
+            _section(12.0, 9.7, 21.0, "NACA 4418"),
+            _section(18.0, 8.7, 17.0, "SG6040"),
+            _section(25.0, 7.3, 13.0, "SG6042"),
+            _section(32.0, 5.8, 9.0, "SG6043"),
+            _section(39.0, 4.4, 5.0, "SG6043"),
+            _section(45.0, 3.0, 2.0, "NACA 2412"),
             _section(50.0, 2.0, 0.0, "E387"),
         ),
     ),
@@ -86,7 +90,7 @@ _PRESETS: tuple[BladePreset, ...] = (
         name="High RPM / Low Drag Tip",
         description=(
             "A slimmer blade that gives up some starting torque to reduce drag near "
-            "the fast-moving outer blade."
+            "the fast-moving outer blade, with extra stations for cleaner CAD Lofting."
         ),
         tradeoffs=(
             "Can reach higher RPM when the generator load is not too heavy.",
@@ -95,10 +99,12 @@ _PRESETS: tuple[BladePreset, ...] = (
         ),
         sections=(
             _section(6.0, 8.0, 18.0, "NACA 4415"),
-            _section(14.0, 6.8, 13.0, "SG6042"),
-            _section(24.0, 5.0, 8.0, "SG6043"),
-            _section(34.0, 3.6, 4.0, "NACA 2412"),
-            _section(43.0, 2.5, 1.0, "E387"),
+            _section(12.0, 7.3, 15.0, "NACA 4415"),
+            _section(18.0, 6.4, 12.0, "SG6042"),
+            _section(25.0, 5.2, 9.0, "SG6043"),
+            _section(32.0, 4.1, 6.0, "NACA 2412"),
+            _section(39.0, 3.0, 3.0, "NACA 2412"),
+            _section(45.0, 2.2, 1.0, "E387"),
             _section(50.0, 1.5, 0.0, "E387"),
         ),
     ),
@@ -106,19 +112,22 @@ _PRESETS: tuple[BladePreset, ...] = (
         name="Low Wind 3.6 m/s Classroom Tunnel",
         description=(
             "A low-wind design aimed specifically at a 3.6 m/s classroom wind tunnel. "
-            "It uses high-lift mid sections to help the rotor make useful torque."
+            "It uses eight smooth CAD stations and SG-series mid sections to make useful "
+            "torque while staying easier to Loft than an aggressive high-lift profile."
         ),
         tradeoffs=(
             "Best first trial when the competition tunnel wind speed is fixed at 3.6 m/s.",
-            "High-lift mid sections can be sensitive to rough prints and over-pitching.",
+            "Smooth SG-series mid sections are easier to Loft than aggressive S1223 geometry.",
             "Prioritises useful torque over maximum no-load RPM.",
         ),
         sections=(
             _section(6.0, 9.5, 23.0, "NACA 4418"),
-            _section(14.0, 8.2, 17.0, "SG6040"),
-            _section(24.0, 6.5, 12.0, "S1223"),
-            _section(34.0, 4.8, 7.0, "SG6043"),
-            _section(43.0, 3.2, 3.0, "SG6043"),
+            _section(12.0, 8.7, 19.0, "NACA 4418"),
+            _section(18.0, 7.6, 15.0, "SG6040"),
+            _section(24.0, 6.5, 12.0, "SG6042"),
+            _section(31.0, 5.3, 9.0, "SG6043"),
+            _section(38.0, 4.1, 5.0, "SG6043"),
+            _section(44.0, 2.8, 2.0, "SG6043"),
             _section(50.0, 1.9, 0.0, "NACA 2412"),
         ),
     ),
@@ -126,7 +135,7 @@ _PRESETS: tuple[BladePreset, ...] = (
         name="Easy CAD / Easy Print",
         description=(
             "A practical build-first preset with easier airfoil families and moderate "
-            "geometry for students who are new to CAD and 3D printing."
+            "eight-station geometry for students who are new to CAD and 3D printing."
         ),
         tradeoffs=(
             "Easier to model, align, sand, and explain in an engineering notebook.",
@@ -135,10 +144,12 @@ _PRESETS: tuple[BladePreset, ...] = (
         ),
         sections=(
             _section(6.0, 8.5, 18.0, "Clark Y"),
-            _section(14.0, 7.2, 14.0, "Clark Y"),
-            _section(24.0, 5.8, 9.0, "NACA 2412"),
-            _section(34.0, 4.4, 5.0, "NACA 2412"),
-            _section(43.0, 3.0, 2.0, "E387"),
+            _section(12.0, 7.7, 15.0, "Clark Y"),
+            _section(18.0, 6.8, 12.0, "Clark Y"),
+            _section(25.0, 5.6, 9.0, "NACA 2412"),
+            _section(32.0, 4.5, 6.0, "NACA 2412"),
+            _section(39.0, 3.4, 3.0, "NACA 2412"),
+            _section(45.0, 2.5, 1.0, "E387"),
             _section(50.0, 1.8, 0.0, "E387"),
         ),
     ),

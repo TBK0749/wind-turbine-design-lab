@@ -36,11 +36,13 @@ def test_onshape_package_contains_expected_files() -> None:
     }.issubset(names)
     assert sorted(name for name in names if name.startswith("section_profiles/section_")) == [
         "section_profiles/section_01_root_NACA4418.dxf",
-        "section_profiles/section_02_SG6040.dxf",
-        "section_profiles/section_03_SG6043.dxf",
+        "section_profiles/section_02_NACA4418.dxf",
+        "section_profiles/section_03_SG6040.dxf",
         "section_profiles/section_04_SG6043.dxf",
-        "section_profiles/section_05_NACA2412.dxf",
-        "section_profiles/section_06_tip_E387.dxf",
+        "section_profiles/section_05_SG6043.dxf",
+        "section_profiles/section_06_NACA2412.dxf",
+        "section_profiles/section_07_NACA2412.dxf",
+        "section_profiles/section_08_tip_E387.dxf",
     ]
     assert metadata["design_name"] == "student blade"
     assert metadata["rotor_diameter_m"] == 1.0
@@ -65,7 +67,7 @@ def test_blade_geometry_csv_contains_sections_and_airfoils() -> None:
 
     assert "Section,Position (cm),Chord (cm),Twist (deg),Airfoil,Role" in csv_text
     assert "1 (Root),6.0,9.0,20.0,NACA 4418" in csv_text
-    assert "6 (Tip),50.0,1.8,0.0,E387" in csv_text
+    assert "8 (Tip),50.0,1.8,0.0,E387" in csv_text
 
 
 def test_dxf_exports_have_basic_sections() -> None:
@@ -88,8 +90,8 @@ def test_individual_section_profile_filenames_are_onshape_friendly() -> None:
     assert section_profile_filename(0, sections[0], len(sections)) == (
         "section_01_root_NACA4418.dxf"
     )
-    assert section_profile_filename(1, sections[1], len(sections)) == "section_02_SG6040.dxf"
-    assert section_profile_filename(5, sections[5], len(sections)) == ("section_06_tip_E387.dxf")
+    assert section_profile_filename(1, sections[1], len(sections)) == "section_02_NACA4418.dxf"
+    assert section_profile_filename(7, sections[7], len(sections)) == ("section_08_tip_E387.dxf")
 
 
 def test_individual_section_profile_dxf_has_one_centered_pre_twisted_profile() -> None:
@@ -109,10 +111,12 @@ def test_individual_section_profile_manifest_contains_all_sections() -> None:
 
     assert list(profiles) == [
         "section_01_root_NACA4418.dxf",
-        "section_02_SG6040.dxf",
-        "section_03_SG6043.dxf",
+        "section_02_NACA4418.dxf",
+        "section_03_SG6040.dxf",
         "section_04_SG6043.dxf",
-        "section_05_NACA2412.dxf",
-        "section_06_tip_E387.dxf",
+        "section_05_SG6043.dxf",
+        "section_06_NACA2412.dxf",
+        "section_07_NACA2412.dxf",
+        "section_08_tip_E387.dxf",
     ]
     assert all(text.count("LWPOLYLINE") == 1 for text in profiles.values())
