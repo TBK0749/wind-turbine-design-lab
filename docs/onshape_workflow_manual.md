@@ -19,7 +19,9 @@ see these files:
 | `blade_geometry.csv` | Main table: section, position, chord, twist, airfoil, and role. |
 | `airfoil_sections.csv` | Airfoil metadata and recommended Reynolds-number ranges. |
 | `blade_planform.dxf` | Top-view blade outline in centimetres. Use it as an outline check. |
-| `section_profiles.dxf` | Airfoil cross-section sketches for each blade station. |
+| `section_profiles/section_XX_*.dxf` | One ready-to-insert DXF per blade section. Use these for the main workflow. |
+| `section_profiles/README.md` | List of the individual section DXF files and their chord/twist values. |
+| `section_profiles.dxf` | Combined profile overview. Use it only as a visual reference. |
 | `design_metadata.json` | Simulator settings saved with the export. |
 | `onshape_build_guide.md` | Short build notes included inside the export. |
 
@@ -198,38 +200,65 @@ Offset 44 cm from Right = S6 Tip
 
 ## 6. Place airfoil profiles on the planes
 
-`section_profiles.dxf` contains all exported airfoil profiles. For a beginner,
-the safest workflow is:
+Use the individual files inside the `section_profiles/` folder. The folder
+contains one ready-to-insert DXF per blade section. Each file contains one
+airfoil only, scaled to the correct chord, centred near the sketch origin, and
+pre-rotated by the section twist angle.
+
+For example:
+
+| Plane | Insert this DXF |
+| --- | --- |
+| `S1 Root` | `section_profiles/section_01_root_NACA4418.dxf` |
+| `S2` | `section_profiles/section_02_SG6040.dxf` |
+| `S3` | `section_profiles/section_03_SG6043.dxf` |
+| `S4` | `section_profiles/section_04_SG6043.dxf` |
+| `S5` | `section_profiles/section_05_NACA2412.dxf` |
+| `S6 Tip` | `section_profiles/section_06_tip_E387.dxf` |
+
+These filenames are examples from one preset. Your package may use different
+airfoil names, so always check `section_profiles/README.md` or
+`blade_geometry.csv`.
+
+This is the beginner workflow:
 
 1. Create a Sketch on plane `S1 Root`.
-2. Insert `section_profiles.dxf`.
-3. Keep only the section 1 profile.
-4. Delete the other imported profiles from that sketch.
-5. Move the remaining profile so its centreline or leading edge is on your blade
-   reference axis.
-6. Rotate it by the section 1 Twist angle from `blade_geometry.csv`.
-7. Finish the sketch.
-8. Repeat for section 2, section 3, and so on.
+2. Insert `section_profiles/section_01_root_NACA4418.dxf`.
+3. Choose centimetres if Onshape asks for units.
+4. Confirm the sketch.
+5. Create a Sketch on plane `S2`.
+6. Insert the section 2 DXF file.
+7. Repeat from root to tip.
 
-If the DXF import is difficult to separate, use the text labels inside the DXF.
-Each profile is labelled with its section, airfoil, chord, and twist.
+With the individual section DXFs, you do not need to delete the other sections
+and you usually do not need to manually rotate twist. The individual files are
+already prepared for that section.
+
+Do not use `section_profiles.dxf` as the main beginner workflow. That combined
+file is kept only as an overview/reference drawing because it contains all
+sections together.
 
 ## 7. Apply twist correctly
 
 Twist is the local rotation of each airfoil section.
 
-For each sketch:
+The individual `section_profiles/section_XX_*.dxf` files are already pre-rotated
+by the twist angle in `blade_geometry.csv`. For the beginner workflow, insert
+the individual section file and do not rotate it again.
 
-| Section | Rotate profile by |
-| --- | ---: |
-| Section 1 | Twist from row 1 |
-| Section 2 | Twist from row 2 |
-| Section 3 | Twist from row 3 |
-| Section 4 | Twist from row 4 |
-| Section 5 | Twist from row 5 |
-| Section 6 | Twist from row 6 |
+For each sketch in the beginner workflow:
 
-Use the values in your CSV, not the example values if your design is different.
+| Section | Twist handling |
+| --- | --- |
+| Section 1 | Already applied in the section 1 DXF file |
+| Section 2 | Already applied in the section 2 DXF file |
+| Section 3 | Already applied in the section 3 DXF file |
+| Section 4 | Already applied in the section 4 DXF file |
+| Section 5 | Already applied in the section 5 DXF file |
+| Section 6 | Already applied in the section 6 DXF file |
+
+Use the twist values in `blade_geometry.csv` for checking only. Do not rotate
+the individual DXF files again unless you intentionally edit the CAD model.
 
 Keep the rotation direction consistent. If the Loft appears twisted backward,
 undo, reverse the rotation direction, and try again.

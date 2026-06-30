@@ -7,6 +7,9 @@ from windlab.onshape_export import (
     blade_geometry_csv,
     blade_planform_dxf,
     build_onshape_package,
+    individual_section_profile_dxfs,
+    section_profile_dxf,
+    section_profile_filename,
     section_profiles_dxf,
 )
 
@@ -22,14 +25,23 @@ def test_onshape_package_contains_expected_files() -> None:
         names = set(archive.namelist())
         metadata = json.loads(archive.read("design_metadata.json"))
 
-    assert names == {
+    assert {
         "blade_geometry.csv",
         "airfoil_sections.csv",
         "blade_planform.dxf",
         "section_profiles.dxf",
+        "section_profiles/README.md",
         "design_metadata.json",
         "onshape_build_guide.md",
-    }
+    }.issubset(names)
+    assert sorted(name for name in names if name.startswith("section_profiles/section_")) == [
+        "section_profiles/section_01_root_NACA4418.dxf",
+        "section_profiles/section_02_SG6040.dxf",
+        "section_profiles/section_03_SG6043.dxf",
+        "section_profiles/section_04_SG6043.dxf",
+        "section_profiles/section_05_NACA2412.dxf",
+        "section_profiles/section_06_tip_E387.dxf",
+    ]
     assert metadata["design_name"] == "student blade"
     assert metadata["rotor_diameter_m"] == 1.0
     assert metadata["blade_count"] == 3
@@ -54,3 +66,40 @@ def test_dxf_exports_have_basic_sections() -> None:
     assert "NACA 4418" in profiles
     assert "E387" in profiles
     assert profiles.count("LWPOLYLINE") == len(inputs.blade_sections)
+
+
+def test_individual_section_profile_filenames_are_onshape_friendly() -> None:
+    inputs = _sample_input()
+    sections = inputs.blade_sections
+
+    assert section_profile_filename(0, sections[0], len(sections)) == (
+        "section_01_root_NACA4418.dxf"
+    )
+    assert section_profile_filename(1, sections[1], len(sections)) == "section_02_SG6040.dxf"
+    assert section_profile_filename(5, sections[5], len(sections)) == ("section_06_tip_E387.dxf")
+
+
+def test_individual_section_profile_dxf_has_one_centered_pre_twisted_profile() -> None:
+    inputs = _sample_input()
+    dxf = section_profile_dxf(inputs.blade_sections[0], index=0, section_count=6)
+
+    assert dxf.count("LWPOLYLINE") == 1
+    assert "TEXT" not in dxf
+    assert "S2" not in dxf
+    assert "section_1_profile" in dxf
+    assert "-4." in dxf
+    assert "4." in dxf
+
+
+def test_individual_section_profile_manifest_contains_all_sections() -> None:
+    profiles = individual_section_profile_dxfs(_sample_input())
+
+    assert list(profiles) == [
+        "section_01_root_NACA4418.dxf",
+        "section_02_SG6040.dxf",
+        "section_03_SG6043.dxf",
+        "section_04_SG6043.dxf",
+        "section_05_NACA2412.dxf",
+        "section_06_tip_E387.dxf",
+    ]
+    assert all(text.count("LWPOLYLINE") == 1 for text in profiles.values())

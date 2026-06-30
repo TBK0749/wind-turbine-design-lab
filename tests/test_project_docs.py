@@ -92,3 +92,12 @@ def test_onshape_manual_explains_right_plane_and_offset_error() -> None:
     assert "Right plane = S1 Root" in manual
     assert "Offset plane requires a plane" in manual
     assert "do not leave the distance as `1 in`" in manual
+
+
+def test_onshape_manual_explains_split_section_profiles() -> None:
+    manual = Path("docs/onshape_workflow_manual.md").read_text()
+
+    assert "section_profiles/section_01_root_NACA4418.dxf" in manual
+    assert "one ready-to-insert DXF per blade section" in manual
+    assert "Do not use `section_profiles.dxf` as the main beginner workflow" in manual
+    assert "do not need to delete the other sections" in manual

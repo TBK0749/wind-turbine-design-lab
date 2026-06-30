@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from io import BytesIO, StringIO
+from math import cos, radians, sin
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from windlab.airfoil_geometry import airfoil_profile_points
@@ -156,6 +158,79 @@ def _dxf_polyline(
     return "\n".join(body) + "\n"
 
 
+def _safe_filename_part(value: str) -> str:
+    """Return a compact filename-safe token."""
+
+    return re.sub(r"[^A-Za-z0-9]+", "", value)
+
+
+def section_profile_filename(index: int, section: BladeSection, section_count: int) -> str:
+    """Return an Onshape-friendly DXF filename for one blade section."""
+
+    section_number = index + 1
+    position_label = ""
+    if index == 0:
+        position_label = "_root"
+    elif index == section_count - 1:
+        position_label = "_tip"
+    airfoil = _safe_filename_part(section.airfoil_name)
+    return f"section_{section_number:02d}{position_label}_{airfoil}.dxf"
+
+
+def _rotate_points(
+    points: list[tuple[float, float]],
+    *,
+    angle_deg: float,
+) -> list[tuple[float, float]]:
+    """Rotate profile points about the sketch origin."""
+
+    angle_rad = radians(angle_deg)
+    cos_angle = cos(angle_rad)
+    sin_angle = sin(angle_rad)
+    return [
+        (
+            x * cos_angle - y * sin_angle,
+            x * sin_angle + y * cos_angle,
+        )
+        for x, y in points
+    ]
+
+
+def section_profile_dxf(
+    section: BladeSection,
+    *,
+    index: int,
+    section_count: int,
+) -> str:
+    """Return one scaled, centered, pre-twisted airfoil profile DXF."""
+
+    chord_cm = section.chord_m * 100.0
+    centered_points = [
+        ((x - 0.5) * chord_cm, y * chord_cm)
+        for x, y in airfoil_profile_points(section.airfoil_name, point_count=80)
+    ]
+    points = _rotate_points(centered_points, angle_deg=section.twist_angle_deg)
+    return (
+        _dxf_header()
+        + _dxf_polyline(points, layer=f"section_{index + 1}_profile", closed=True)
+        + _dxf_footer()
+    )
+
+
+def individual_section_profile_dxfs(inputs: SimulationInput) -> dict[str, str]:
+    """Return one ready-to-insert DXF file per blade section."""
+
+    sections = _sections_for_export(inputs)
+    return {
+        section_profile_filename(index, section, len(sections)): section_profile_dxf(
+            section,
+            index=index,
+            section_count=len(sections),
+        )
+        for index, section in enumerate(sections)
+    }
+
+
 def blade_planform_dxf(inputs: SimulationInput) -> str:
     """Return a top-view blade outline DXF in centimetres."""
 
@@ -200,6 +275,46 @@ def section_profiles_dxf(inputs: SimulationInput) -> str:
     return "".join(parts)
 
 
+def _section_profiles_readme(inputs: SimulationInput) -> str:
+    """Return README text for the individual section profile folder."""
+
+    sections = _sections_for_export(inputs)
+    rows = [
+        "# Individual section profile DXF files",
+        "",
+        "Each DXF in this folder contains one airfoil profile only.",
+        "Profiles are scaled to the section chord in centimetres, centred around the",
+        "sketch origin, and pre-rotated by the section twist angle.",
+        "",
+        "Recommended Onshape workflow:",
+        "",
+        "1. Create or select the matching section plane.",
+        "2. Start a new sketch on that plane.",
+        "3. Insert the matching DXF file from this folder.",
+        "4. Confirm the sketch.",
+        "5. Repeat from root to tip, then Loft through the section sketches.",
+        "",
+        "| Section | File | Chord (cm) | Twist (deg) | Airfoil |",
+        "| --- | --- | ---: | ---: | --- |",
+    ]
+    for index, section in enumerate(sections):
+        rows.append(
+            "| "
+            f"{_section_label(index, len(sections))} | "
+            f"`{section_profile_filename(index, section, len(sections))}` | "
+            f"{section.chord_m * 100.0:.1f} | "
+            f"{section.twist_angle_deg:.1f} | "
+            f"{section.airfoil_name} |"
+        )
+    rows.extend(
+        [
+            "",
+            "`section_profiles.dxf` in the package root is still included as an overview only.",
+        ]
+    )
+    return "\n".join(rows) + "\n"
+
+
 def _metadata(inputs: SimulationInput, design_name: str) -> dict[str, object]:
     sections = _sections_for_export(inputs)
     return {
@@ -212,6 +327,7 @@ def _metadata(inputs: SimulationInput, design_name: str) -> dict[str, object]:
         "blade_count": inputs.blade_count,
         "section_count": len(sections),
         "airfoils": [section.airfoil_name for section in sections],
+        "section_profile_files": list(individual_section_profile_dxfs(inputs)),
         "note": (
             "Educational CAD export. Verify dimensions, hub mounting, print orientation, "
             "and competition rules before manufacturing."
@@ -232,16 +348,18 @@ This package is a CAD starting point for a classroom wind-turbine blade.
 - `blade_geometry.csv` — station table: position, chord, twist, airfoil, and role.
 - `airfoil_sections.csv` — airfoil metadata and Reynolds-number guidance.
 - `blade_planform.dxf` — top-view blade outline in centimetres.
-- `section_profiles.dxf` — scaled airfoil cross-sections in centimetres.
+- `section_profiles/section_XX_*.dxf` — one ready-to-insert DXF per blade section.
+- `section_profiles.dxf` — combined profile overview for reference.
 - `design_metadata.json` — simulator metadata for this export.
 
 ## Suggested Onshape workflow
 
 1. Create a new Onshape document and set the working unit to centimetres.
 2. Import `blade_planform.dxf` as a sketch for the top-view blade shape.
-3. Import or trace the profiles from `section_profiles.dxf` at the matching station positions.
-4. Rotate each profile by its twist angle from `blade_geometry.csv`.
-5. Loft through the profiles, then add a hub connector that matches your real generator shaft.
+3. On each section plane, insert the matching file from the `section_profiles/` folder.
+4. The individual section DXFs are already scaled, centred, and pre-rotated by twist.
+5. Loft through the section sketches, then add a hub connector that matches your
+   real generator shaft.
 6. Use a circular pattern for {metadata["blade_count"]} blades.
 7. Check the final rotor diameter is not greater than {metadata["rotor_diameter_m"]:.2f} m.
 
@@ -267,6 +385,9 @@ def build_onshape_package(
         archive.writestr("airfoil_sections.csv", airfoil_sections_csv(inputs))
         archive.writestr("blade_planform.dxf", blade_planform_dxf(inputs))
         archive.writestr("section_profiles.dxf", section_profiles_dxf(inputs))
+        archive.writestr("section_profiles/README.md", _section_profiles_readme(inputs))
+        for filename, dxf_text in individual_section_profile_dxfs(inputs).items():
+            archive.writestr(f"section_profiles/{filename}", dxf_text)
         archive.writestr(
             "design_metadata.json",
             json.dumps(_metadata(inputs, design_name), indent=2, ensure_ascii=False),
