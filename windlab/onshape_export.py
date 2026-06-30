@@ -13,6 +13,8 @@ from windlab.airfoil_geometry import airfoil_profile_points
 from windlab.models import BladeSection, SimulationInput
 from windlab.section_airfoils import get_section_airfoil
 
+ONSHAPE_LOFT_PROFILE_POINT_COUNT = 36
+
 
 def _fallback_airfoil_name(inputs: SimulationInput) -> str:
     """Map broad airfoil families to a section-level profile for CAD exports."""
@@ -207,7 +209,10 @@ def section_profile_dxf(
     chord_cm = section.chord_m * 100.0
     centered_points = [
         ((x - 0.5) * chord_cm, y * chord_cm)
-        for x, y in airfoil_profile_points(section.airfoil_name, point_count=80)
+        for x, y in airfoil_profile_points(
+            section.airfoil_name,
+            point_count=ONSHAPE_LOFT_PROFILE_POINT_COUNT,
+        )
     ]
     points = _rotate_points(centered_points, angle_deg=section.twist_angle_deg)
     return (
@@ -284,7 +289,8 @@ def _section_profiles_readme(inputs: SimulationInput) -> str:
         "",
         "Each DXF in this folder contains one airfoil profile only.",
         "Profiles are scaled to the section chord in centimetres, centred around the",
-        "sketch origin, and pre-rotated by the section twist angle.",
+        "sketch origin, pre-rotated by the section twist angle, and simplified to",
+        "a consistent loft-safe vertex count for Onshape.",
         "",
         "Recommended Onshape workflow:",
         "",
