@@ -111,7 +111,90 @@ For the example table above:
 
 The actual numbers must come from your own `blade_geometry.csv`.
 
-Tip: rename each plane immediately. Clear names make Loft much easier.
+### What S1 Root means in Onshape
+
+When this manual says **use the Right plane as S1 Root**, it means:
+
+```text
+Do not create a new plane for section 1.
+The existing Right plane is section 1 / root.
+```
+
+In the Part Studio feature tree, expand **Default geometry**. You should see:
+
+```text
+Origin
+Top
+Front
+Right
+```
+
+Use `Right` as the first root section plane. Later, when you sketch the first
+airfoil profile, create that sketch directly on `Right`.
+
+### Create the offset planes for S2 to S6
+
+1. If a failed Plane dialog is open, click the red `X` to cancel it.
+2. Expand **Default geometry** in the left feature tree.
+3. Click the **Plane** tool.
+4. Set the plane type to **Offset**.
+5. Click the `Entities` box.
+6. Select the existing `Right` plane from the feature tree or from the graphics area.
+7. Change the distance from the default value, often `1 in`, to the required centimetre value.
+8. For S2, type `8 cm`.
+9. Click the green check mark.
+
+Repeat the same process using `Right` as the base plane every time:
+
+| New plane | Base plane to select | Offset distance |
+| --- | --- | ---: |
+| `S2` | `Right` | `8 cm` |
+| `S3` | `Right` | `18 cm` |
+| `S4` | `Right` | `28 cm` |
+| `S5` | `Right` | `37 cm` |
+| `S6 Tip` | `Right` | `44 cm` |
+
+Important: do not leave the distance as `1 in`. Type the centimetre unit
+directly, such as `8 cm`, `18 cm`, or `44 cm`.
+
+If the new plane appears on the wrong side, use **Flip normal** in the Plane
+dialog.
+
+After creating each plane, rename it immediately. Clear names make Loft much
+easier.
+
+### Common plane creation error
+
+If Onshape shows this message:
+
+```text
+Offset plane requires a plane, circle, ellipse, or arc to offset from.
+```
+
+The `Entities` box is still empty. You clicked the Plane tool, but you did not
+select a base plane yet.
+
+Fix:
+
+```text
+Plane tool
+-> Offset
+-> click Entities
+-> click Right plane
+-> type 8 cm
+-> green check
+```
+
+For this workflow:
+
+```text
+Right plane = S1 Root
+Offset 8 cm from Right = S2
+Offset 18 cm from Right = S3
+Offset 28 cm from Right = S4
+Offset 37 cm from Right = S5
+Offset 44 cm from Right = S6 Tip
+```
 
 ## 6. Place airfoil profiles on the planes
 

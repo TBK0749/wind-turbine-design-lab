@@ -48,6 +48,16 @@ def _styles() -> dict[str, ParagraphStyle]:
             spaceBefore=10,
             spaceAfter=7,
         ),
+        "h3": ParagraphStyle(
+            "ManualHeading3",
+            parent=base["Heading3"],
+            fontName="Helvetica-Bold",
+            fontSize=11,
+            leading=14,
+            textColor=colors.HexColor("#374151"),
+            spaceBefore=8,
+            spaceAfter=5,
+        ),
         "body": ParagraphStyle(
             "ManualBody",
             parent=base["BodyText"],
@@ -232,6 +242,13 @@ def build_story(markdown_text: str) -> list:
             _flush_bullets(story, bullet_lines, styles)
             _flush_numbered(story, numbered_lines, styles)
             story.append(_paragraph(line[3:], styles["h2"]))
+            continue
+
+        if line.startswith("### "):
+            _flush_paragraph(story, paragraph_lines, styles)
+            _flush_bullets(story, bullet_lines, styles)
+            _flush_numbered(story, numbered_lines, styles)
+            story.append(_paragraph(line[4:], styles["h3"]))
             continue
 
         if line.startswith("- "):

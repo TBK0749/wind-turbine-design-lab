@@ -82,3 +82,13 @@ def test_onshape_workflow_manual_exists_and_is_linked() -> None:
     assert pdf.exists()
     assert "Onshape workflow manual" in readme
     assert pdf.as_posix() in readme
+
+
+def test_onshape_manual_explains_right_plane_and_offset_error() -> None:
+    manual = Path("docs/onshape_workflow_manual.md").read_text()
+
+    assert "use the Right plane as S1 Root" in manual
+    assert "Do not create a new plane for section 1" in manual
+    assert "Right plane = S1 Root" in manual
+    assert "Offset plane requires a plane" in manual
+    assert "do not leave the distance as `1 in`" in manual
