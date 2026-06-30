@@ -30,7 +30,7 @@ blade geometry, mass, and material affect estimated turbine performance.
 - Autosave the current design to a local SQLite database on the user's computer.
 - Undo/Redo recent simulator changes inside the app.
 - Save and load named local designs without accounts or cloud storage.
-- Load five 3-blade starter presets for a maximum 1 m rotor diameter.
+- Load six 3-blade starter presets for a maximum 1 m rotor diameter.
 - Download an Onshape package with CSV, DXF, JSON, and a Markdown build guide.
 
 ## Local installation guide
@@ -143,9 +143,9 @@ Use the **Design workspace** panel at the top of the Design Lab to:
 - restore the current design after a browser refresh;
 - reset to the default competition design;
 - save and load named designs on the same computer;
-- load five 3-blade starter presets for the 1 m maximum rotor-diameter rule.
+- load six 3-blade starter presets for the 1 m maximum rotor-diameter rule.
 
-The five presets are starting points for experiments, not guaranteed winning
+The six presets are starting points for experiments, not guaranteed winning
 designs. Students should still compare predicted mW, print quality, startup
 behavior, and measured wind-tunnel results.
 

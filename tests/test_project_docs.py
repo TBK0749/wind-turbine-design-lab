@@ -67,7 +67,7 @@ def test_docs_describe_local_workspace_and_onshape_export() -> None:
     assert "## Local design workspace" in readme
     assert "user_data/windlab.sqlite" in readme
     assert "Undo/Redo" in readme
-    assert "five 3-blade starter presets" in readme
+    assert "six 3-blade starter presets" in readme
     assert "## Onshape package export" in readme
     assert "Download Onshape package" in readme
     assert "not a print-ready STL" in readme
