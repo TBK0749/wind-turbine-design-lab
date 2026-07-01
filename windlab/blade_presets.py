@@ -42,12 +42,36 @@ def _section(
 
 _PRESETS: tuple[BladePreset, ...] = (
     BladePreset(
+        name="Max Competition 45 cm",
+        description=(
+            "A 45 cm blade-length competition preset for a fixed 3.6 m/s classroom "
+            "wind tunnel. It uses the best six-section result from the current "
+            "educational model, with a strong NACA 4418 root and SG-series lift "
+            "sections through the working span."
+        ),
+        tradeoffs=(
+            "Recommended when the physical blade length must stay at or below 45 cm.",
+            "Six sections make the Onshape rebuild faster while keeping the taper smooth.",
+            "Slightly lower predicted mW than the 50 cm maximum-radius preset, but "
+            "better matched to a 45 cm build limit.",
+        ),
+        sections=(
+            _section(6.0, 11.00, 13.5, "NACA 4418"),
+            _section(13.8, 9.51, 9.3, "SG6040"),
+            _section(21.6, 8.00, 6.2, "SG6042"),
+            _section(29.4, 6.47, 3.8, "SG6043"),
+            _section(37.2, 4.89, 1.7, "SG6043"),
+            _section(45.0, 3.20, 0.0, "SG6043"),
+        ),
+        rotor_radius_m=0.45,
+    ),
+    BladePreset(
         name="Max Competition 3.6 m/s",
         description=(
             "A 9-section competition-first preset tuned for a fixed 3.6 m/s classroom "
             "wind tunnel and a maximum 1 m rotor diameter. It keeps the root strong, "
             "uses smooth SG-series lift sections through most of the blade, and keeps "
-            "the tip narrow enough for cleaner Onshape Lofting with 40 profile vertices."
+            "the tip narrow enough for cleaner Onshape Lofting with 120 profile vertices."
         ),
         tradeoffs=(
             "Recommended starting point when the goal is maximum mW at 3.6 m/s.",

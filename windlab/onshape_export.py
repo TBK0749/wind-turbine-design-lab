@@ -14,7 +14,7 @@ from windlab.models import BladeSection, SimulationInput
 from windlab.section_airfoils import get_section_airfoil
 
 ONSHAPE_LOFT_PROFILE_POINT_COUNT = 80
-ONSHAPE_LOFT_PROFILE_VERTEX_COUNT = 40
+ONSHAPE_LOFT_PROFILE_VERTEX_COUNT = 120
 MIN_ONSHAPE_TRAILING_EDGE_THICKNESS_CM = 0.10
 
 

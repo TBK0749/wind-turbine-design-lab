@@ -204,13 +204,13 @@ def test_individual_section_profile_manifest_contains_all_sections() -> None:
 
 
 def test_individual_section_profiles_use_loft_safe_vertex_counts() -> None:
-    """Use the selected 40-vertex balance of airfoil fidelity and Onshape safety."""
+    """Use the selected 120-vertex balance of airfoil fidelity and Onshape safety."""
 
     for preset in blade_preset_options():
         profiles = individual_section_profile_dxfs(preset_to_simulation_input(preset))
         vertex_counts = {_dxf_lwpolyline_vertex_count(text) for text in profiles.values()}
 
-        assert vertex_counts == {40}
+        assert vertex_counts == {120}
 
 
 def test_individual_section_profiles_are_clean_for_lofting() -> None:
@@ -233,7 +233,7 @@ def test_individual_section_profiles_are_clean_for_lofting() -> None:
 
 
 def test_individual_section_profiles_avoid_tiny_sliver_edges() -> None:
-    """Avoid extremely tiny DXF edges while preserving 40-vertex airfoil detail."""
+    """Avoid near-zero DXF edges while preserving 120-vertex airfoil detail."""
 
     for preset in blade_preset_options():
         profiles = individual_section_profile_dxfs(preset_to_simulation_input(preset))
@@ -241,4 +241,4 @@ def test_individual_section_profiles_avoid_tiny_sliver_edges() -> None:
         for dxf in profiles.values():
             points = _dxf_lwpolyline_points(dxf)
 
-            assert _minimum_edge_length(points) >= 0.03
+            assert _minimum_edge_length(points) >= 0.003

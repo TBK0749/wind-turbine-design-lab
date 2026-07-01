@@ -67,7 +67,7 @@ def render_quick_start_guide() -> None:
   does not reliably undo Streamlit widget changes.
 - **Named saves:** save several candidate designs and load them later on the
   same computer.
-- **Blade presets:** load six 3-blade starter presets for the 1 m maximum
+- **Blade presets:** load seven 3-blade starter presets for the 1 m maximum
   rotor-diameter rule, then edit the table for your own experiment.
 """
     )
