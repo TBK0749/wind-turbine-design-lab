@@ -6,25 +6,37 @@ import streamlit as st
 from app.components.design_workspace import active_design, widget_key
 from windlab.airfoils import AIRFOIL_LIBRARY
 from windlab.blade_geometry import competition_50cm_sections
+from windlab.design_state import blank_blade_sections
 from windlab.materials import MATERIALS, SURFACE_FINISHES
 from windlab.models import BladeSection, SimulationInput
 from windlab.section_airfoils import get_section_airfoil, section_airfoil_options
+
+SECTION_TABLE_COLUMNS = [
+    "Section",
+    "Position (cm)",
+    "Chord (cm)",
+    "Twist (deg)",
+    "Airfoil",
+    "Airfoil role / purpose",
+]
+
+
+def _section_label(index: int, section_count: int) -> str:
+    """Return the display label for a blade section row."""
+
+    if index == 0:
+        return "1 (Root)"
+    if index == section_count - 1:
+        return f"{section_count} (Tip)"
+    return str(index + 1)
 
 
 def _section_frame_from_sections(sections: tuple[BladeSection, ...]) -> pd.DataFrame:
     """Build an editable centimetre-based table for the supplied blade."""
 
-    labels = [
-        "1 (Root)"
-        if index == 0
-        else f"{len(sections)} (Tip)"
-        if index == len(sections) - 1
-        else str(index + 1)
-        for index, _ in enumerate(sections)
-    ]
     return pd.DataFrame(
         {
-            "Section": labels,
+            "Section": [_section_label(index, len(sections)) for index, _ in enumerate(sections)],
             "Position (cm)": [section.position_m * 100.0 for section in sections],
             "Chord (cm)": [section.chord_m * 100.0 for section in sections],
             "Twist (deg)": [section.twist_angle_deg for section in sections],
@@ -32,6 +44,169 @@ def _section_frame_from_sections(sections: tuple[BladeSection, ...]) -> pd.DataF
             "Airfoil role / purpose": [section.airfoil_role for section in sections],
         }
     )
+
+
+def _normalise_airfoil_name(value: object) -> str:
+    """Return a valid student-facing airfoil name."""
+
+    if pd.isna(value) or not str(value).strip():
+        return "NACA 4412"
+    airfoil_name = str(value).strip()
+    if airfoil_name not in section_airfoil_options():
+        return "NACA 4412"
+    return airfoil_name
+
+
+def _role_for_airfoil(airfoil_name: str, role: object = "") -> str:
+    """Return an editable role, falling back to the catalog explanation."""
+
+    if not pd.isna(role) and str(role).strip():
+        return str(role)
+    return get_section_airfoil(airfoil_name).role
+
+
+def _section_frame_with_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    """Return a table that has all expected section-editor columns."""
+
+    prepared = frame.copy()
+    for column in SECTION_TABLE_COLUMNS:
+        if column not in prepared:
+            prepared[column] = None
+    return prepared[SECTION_TABLE_COLUMNS]
+
+
+def _relabel_section_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    """Sort complete positioned rows by radius and refresh display labels."""
+
+    prepared = _section_frame_with_columns(frame)
+    positions = pd.to_numeric(prepared["Position (cm)"], errors="coerce")
+    positioned = prepared[positions.notna()].copy()
+    unpositioned = prepared[positions.isna()].copy()
+
+    if not positioned.empty:
+        positioned["Position (cm)"] = pd.to_numeric(positioned["Position (cm)"], errors="coerce")
+        positioned = positioned.sort_values("Position (cm)", kind="mergesort")
+
+    relabelled = pd.concat([positioned, unpositioned], ignore_index=True)
+    for index in range(len(relabelled)):
+        relabelled.loc[index, "Section"] = _section_label(index, len(relabelled))
+    return relabelled
+
+
+def _complete_section_rows(frame: pd.DataFrame) -> pd.DataFrame:
+    """Return rows that contain enough numeric data to interpolate from."""
+
+    prepared = _section_frame_with_columns(frame)
+    prepared["Position (cm)"] = pd.to_numeric(prepared["Position (cm)"], errors="coerce")
+    prepared["Chord (cm)"] = pd.to_numeric(prepared["Chord (cm)"], errors="coerce")
+    prepared["Twist (deg)"] = pd.to_numeric(prepared["Twist (deg)"], errors="coerce")
+    prepared["Airfoil"] = prepared["Airfoil"].map(_normalise_airfoil_name)
+    prepared["Airfoil role / purpose"] = [
+        _role_for_airfoil(str(airfoil), role)
+        for airfoil, role in zip(
+            prepared["Airfoil"],
+            prepared["Airfoil role / purpose"],
+            strict=True,
+        )
+    ]
+    complete = prepared.dropna(subset=["Position (cm)", "Chord (cm)", "Twist (deg)"])
+    return complete.sort_values("Position (cm)", kind="mergesort").reset_index(drop=True)
+
+
+def _root_refinement_positions(first_position_cm: float, count: int) -> tuple[float, ...]:
+    """Return evenly spaced stations before the first existing blade station."""
+
+    if count <= 0:
+        return ()
+    step = first_position_cm / float(count + 1)
+    return tuple(round(max(step * index, 0.1), 3) for index in range(1, count + 1))
+
+
+def _interpolated_section_row(frame: pd.DataFrame, position_cm: float) -> dict[str, object] | None:
+    """Build one inserted row using neighbouring section values."""
+
+    complete = _complete_section_rows(frame)
+    if complete.empty:
+        return None
+
+    position_cm = max(float(position_cm), 0.1)
+    if position_cm <= float(complete.iloc[0]["Position (cm)"]):
+        source = complete.iloc[0]
+        return {
+            "Section": "",
+            "Position (cm)": position_cm,
+            "Chord (cm)": float(source["Chord (cm)"]),
+            "Twist (deg)": float(source["Twist (deg)"]),
+            "Airfoil": str(source["Airfoil"]),
+            "Airfoil role / purpose": str(source["Airfoil role / purpose"]),
+        }
+
+    if position_cm >= float(complete.iloc[-1]["Position (cm)"]):
+        source = complete.iloc[-1]
+        return {
+            "Section": "",
+            "Position (cm)": position_cm,
+            "Chord (cm)": float(source["Chord (cm)"]),
+            "Twist (deg)": float(source["Twist (deg)"]),
+            "Airfoil": str(source["Airfoil"]),
+            "Airfoil role / purpose": str(source["Airfoil role / purpose"]),
+        }
+
+    for index in range(len(complete) - 1):
+        left = complete.iloc[index]
+        right = complete.iloc[index + 1]
+        left_position = float(left["Position (cm)"])
+        right_position = float(right["Position (cm)"])
+        if left_position <= position_cm <= right_position:
+            span = right_position - left_position
+            ratio = 0.0 if span == 0 else (position_cm - left_position) / span
+            nearest = left if ratio <= 0.5 else right
+            return {
+                "Section": "",
+                "Position (cm)": position_cm,
+                "Chord (cm)": round(
+                    float(left["Chord (cm)"])
+                    + (float(right["Chord (cm)"]) - float(left["Chord (cm)"])) * ratio,
+                    3,
+                ),
+                "Twist (deg)": round(
+                    float(left["Twist (deg)"])
+                    + (float(right["Twist (deg)"]) - float(left["Twist (deg)"])) * ratio,
+                    3,
+                ),
+                "Airfoil": str(nearest["Airfoil"]),
+                "Airfoil role / purpose": str(nearest["Airfoil role / purpose"]),
+            }
+
+    return None
+
+
+def _insert_interpolated_section_rows(
+    frame: pd.DataFrame,
+    positions_cm: tuple[float, ...],
+) -> pd.DataFrame:
+    """Insert one or more section rows and return a sorted, relabelled table."""
+
+    prepared = _section_frame_with_columns(frame)
+    existing_positions = {
+        round(float(position), 6)
+        for position in pd.to_numeric(prepared["Position (cm)"], errors="coerce").dropna()
+    }
+    new_rows = []
+    for position_cm in positions_cm:
+        safe_position = max(float(position_cm), 0.1)
+        if round(safe_position, 6) in existing_positions:
+            continue
+        row = _interpolated_section_row(prepared, safe_position)
+        if row is None:
+            continue
+        new_rows.append(row)
+        existing_positions.add(round(safe_position, 6))
+
+    if not new_rows:
+        return _relabel_section_frame(prepared)
+    updated = pd.concat([prepared, pd.DataFrame(new_rows)], ignore_index=True)
+    return _relabel_section_frame(updated)
 
 
 def _competition_section_frame() -> pd.DataFrame:
@@ -49,17 +224,12 @@ def _sections_from_frame(frame: pd.DataFrame) -> tuple[BladeSection, ...]:
             row.get("Position (cm)"),
             row.get("Chord (cm)"),
             row.get("Twist (deg)"),
-            row.get("Airfoil"),
         )
         if any(pd.isna(value) for value in values):
             continue
-        airfoil_name = str(values[3])
+        airfoil_name = _normalise_airfoil_name(row.get("Airfoil"))
         role = row.get("Airfoil role / purpose")
-        airfoil_role = (
-            get_section_airfoil(airfoil_name).role
-            if pd.isna(role) or not str(role).strip()
-            else str(role)
-        )
+        airfoil_role = _role_for_airfoil(airfoil_name, role)
         sections.append(
             BladeSection(
                 position_m=float(values[0]) / 100.0,
@@ -171,16 +341,106 @@ def render_input_panel() -> SimulationInput:
             "centimetres; the simulator converts them to metres."
         )
         base_sections = design.blade_sections or competition_50cm_sections()
+        section_frame_state_key = widget_key("blade_section_frame")
+        section_editor_refresh_key = widget_key("blade_section_editor_refresh")
+        st.session_state.setdefault(section_editor_refresh_key, 0)
+        if section_frame_state_key not in st.session_state:
+            st.session_state[section_frame_state_key] = _section_frame_from_sections(base_sections)
+
+        section_frame_source = _section_frame_with_columns(st.session_state[section_frame_state_key])
+        complete_rows = _complete_section_rows(section_frame_source)
+        first_position_cm = (
+            float(complete_rows.iloc[0]["Position (cm)"]) if not complete_rows.empty else 6.0
+        )
+
+        with st.expander("Insert / sort section rows", expanded=False):
+            st.caption(
+                "Use these tools when you need rows before the current root station. "
+                "The table + button can only append rows at the bottom; this tool inserts "
+                "by Position (cm), then sorts and relabels the sections automatically."
+            )
+            st.caption(
+                "Use positions above 0 cm. A true 0 cm station is the rotor axis, which is "
+                "not a stable aerodynamic station for the simulator."
+            )
+            root_col, insert_col, sort_col, clear_col = st.columns(4)
+            with root_col:
+                root_refinement_count = st.number_input(
+                    "Rows before first station",
+                    min_value=1,
+                    max_value=12,
+                    value=3,
+                    step=1,
+                    key=widget_key("root_refinement_count"),
+                    help="Example: first station 6 cm and 3 rows creates 1.5, 3.0, 4.5 cm.",
+                )
+                if st.button("Add root refinement rows", width="stretch"):
+                    positions = _root_refinement_positions(
+                        first_position_cm,
+                        int(root_refinement_count),
+                    )
+                    st.session_state[section_frame_state_key] = _insert_interpolated_section_rows(
+                        section_frame_source,
+                        positions,
+                    )
+                    st.session_state[section_editor_refresh_key] += 1
+                    st.rerun()
+            with insert_col:
+                insert_position_cm = st.number_input(
+                    "Insert at position (cm)",
+                    min_value=0.1,
+                    max_value=10000.0,
+                    value=round(max(first_position_cm / 2.0, 0.1), 1),
+                    step=0.5,
+                    key=widget_key("insert_section_position_cm"),
+                )
+                if st.button("Insert section", width="stretch"):
+                    st.session_state[section_frame_state_key] = _insert_interpolated_section_rows(
+                        section_frame_source,
+                        (float(insert_position_cm),),
+                    )
+                    st.session_state[section_editor_refresh_key] += 1
+                    st.rerun()
+            with sort_col:
+                st.write("")
+                st.write("")
+                if st.button("Sort rows by position", width="stretch"):
+                    st.session_state[section_frame_state_key] = _relabel_section_frame(
+                        section_frame_source
+                    )
+                    st.session_state[section_editor_refresh_key] += 1
+                    st.rerun()
+            with clear_col:
+                st.write("")
+                st.write("")
+                if st.button(
+                    "Clear section table",
+                    width="stretch",
+                    help="Replace the table with editable root and tip rows.",
+                ):
+                    st.session_state[section_frame_state_key] = _section_frame_from_sections(
+                        blank_blade_sections(float(rotor_radius))
+                    )
+                    st.session_state[section_editor_refresh_key] += 1
+                    st.rerun()
+
         section_frame = st.data_editor(
-            _section_frame_from_sections(base_sections),
-            key=widget_key("blade_section_editor"),
+            _section_frame_with_columns(st.session_state[section_frame_state_key]),
+            key=(
+                f"{widget_key('blade_section_editor')}_"
+                f"{st.session_state[section_editor_refresh_key]}"
+            ),
             hide_index=True,
             num_rows="dynamic",
             width="stretch",
             column_config={
                 "Section": st.column_config.TextColumn("Section", disabled=True),
                 "Position (cm)": st.column_config.NumberColumn(
-                    "Position (cm)", min_value=0.1, step=1.0, format="%.1f"
+                    "Position (cm)",
+                    min_value=0.1,
+                    step=1.0,
+                    format="%.1f",
+                    help="Use 0.1 cm or greater; 0 cm is the rotor axis.",
                 ),
                 "Chord (cm)": st.column_config.NumberColumn(
                     "Chord (cm)", min_value=0.1, step=0.1, format="%.1f"
@@ -192,7 +452,7 @@ def render_input_panel() -> SimulationInput:
                     "Airfoil",
                     options=section_airfoil_options(),
                     help="Airfoil assigned to this blade station.",
-                    required=True,
+                    required=False,
                 ),
                 "Airfoil role / purpose": st.column_config.TextColumn(
                     "Airfoil role / purpose",
@@ -201,12 +461,24 @@ def render_input_panel() -> SimulationInput:
                 ),
             },
         )
-        airfoil_sequence = " → ".join(section.airfoil_name for section in base_sections)
+        st.session_state[section_frame_state_key] = _section_frame_with_columns(section_frame)
+        blade_sections = _sections_from_frame(section_frame)
+        airfoil_sequence = " → ".join(section.airfoil_name for section in blade_sections)
         st.markdown(
             f"**Airfoil preset:** {airfoil_sequence}. "
             "Use thicker root sections for strength and thinner tip sections to reduce drag."
         )
-        blade_sections = _sections_from_frame(section_frame)
+        if blade_sections:
+            section_count_inside_hub = sum(
+                1 for section in blade_sections if section.position_m <= float(hub_radius)
+            )
+            if section_count_inside_hub:
+                st.caption(
+                    f"{section_count_inside_hub} section row(s) are inside the current "
+                    f"{float(hub_radius) * 100.0:.1f} cm hub radius. That can be useful for "
+                    "CAD root shaping, but wind-power contribution is mainly from stations "
+                    "outside the hub."
+                )
         root_chord = blade_sections[0].chord_m if blade_sections else 0.09
         tip_chord = blade_sections[-1].chord_m if blade_sections else 0.02
         twist = blade_sections[0].twist_angle_deg if blade_sections else 20.0

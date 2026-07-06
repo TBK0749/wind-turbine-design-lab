@@ -128,6 +128,29 @@ def test_specific_naca_polar_changes_drag_and_efficiency() -> None:
     assert tip.drag_coefficient <= mid.drag_coefficient
 
 
+def test_thick_symmetric_naca_polars_are_available_and_draggier() -> None:
+    naca_0018 = lookup_airfoil_polar(
+        "NACA 0018",
+        angle_of_attack_deg=6.0,
+        reynolds_number=100_000.0,
+    )
+    naca_0024 = lookup_airfoil_polar(
+        "NACA 0024",
+        angle_of_attack_deg=6.0,
+        reynolds_number=100_000.0,
+    )
+    naca_0030 = lookup_airfoil_polar(
+        "NACA 0030",
+        angle_of_attack_deg=6.0,
+        reynolds_number=100_000.0,
+    )
+
+    assert naca_0024.airfoil_name == "NACA 0024"
+    assert naca_0030.airfoil_name == "NACA 0030"
+    assert naca_0024.drag_coefficient > naca_0018.drag_coefficient
+    assert naca_0030.drag_coefficient > naca_0024.drag_coefficient
+
+
 def test_unknown_airfoil_is_rejected() -> None:
     with pytest.raises(ValueError, match="Airfoil"):
         estimate_airfoil_performance(

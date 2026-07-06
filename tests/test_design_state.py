@@ -1,6 +1,9 @@
 from windlab.blade_geometry import competition_50cm_sections
 from windlab.design_state import (
+    BLANK_DESIGN_NAME,
     DEFAULT_DESIGN_NAME,
+    blank_blade_sections,
+    blank_design_input,
     default_design_input,
     design_input_from_dict,
     design_input_to_dict,
@@ -37,3 +40,25 @@ def test_default_design_input_matches_competition_starting_point() -> None:
     assert default.rotor_radius_m == 0.45
     assert default.blade_count == 3
     assert len(default.blade_sections) == 6
+
+
+def test_blank_design_input_starts_with_minimal_editable_section_table() -> None:
+    blank = blank_design_input()
+
+    assert BLANK_DESIGN_NAME == "Untitled custom design"
+    assert blank.wind_speed_m_s == 3.6
+    assert blank.rotor_radius_m == 0.45
+    assert blank.blade_count == 3
+    assert len(blank.blade_sections) == 2
+    assert blank.blade_sections[0].position_m == 0.06
+    assert blank.blade_sections[-1].position_m == blank.rotor_radius_m
+    assert blank.blade_sections[0].airfoil_name == "NACA 4412"
+    assert blank.blade_sections[-1].airfoil_name == "NACA 0012"
+
+
+def test_blank_blade_sections_follow_requested_rotor_radius() -> None:
+    sections = blank_blade_sections(rotor_radius_m=0.50)
+
+    assert len(sections) == 2
+    assert sections[0].position_m == 0.06
+    assert sections[-1].position_m == 0.50

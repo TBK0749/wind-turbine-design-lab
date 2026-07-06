@@ -90,6 +90,56 @@ SECTION_AIRFOILS: dict[str, SectionAirfoil] = {
         camber_percent=0.0,
         camber_position_percent=0.0,
     ),
+    "NACA 0024": SectionAirfoil(
+        name="NACA 0024",
+        family="Symmetric airfoil",
+        role=(
+            "Very thick symmetric root option for stiffness and hub transition; "
+            "best used near the root, not the fast tip."
+        ),
+        best_zone="Root",
+        plain_language_summary=(
+            "0% camber, 24% thick; strong root shape but higher drag than thinner sections."
+        ),
+        thickness_percent=24.0,
+        camber_percent=0.0,
+        camber_position_percent=0.0,
+        recommended_reynolds_min=50_000.0,
+        recommended_reynolds_max=500_000.0,
+        confidence="Estimated",
+        source_note=(
+            "Generated from the standard NACA 4-digit geometry equation; aerodynamic "
+            "performance is an educational estimate unless calibrated with polar data."
+        ),
+        zone_warnings=(
+            "NACA 0024 can add drag and mass if used away from the root.",
+        ),
+    ),
+    "NACA 0030": SectionAirfoil(
+        name="NACA 0030",
+        family="Symmetric airfoil",
+        role=(
+            "Extremely thick symmetric structural root option; useful for hub/root "
+            "experiments but usually too draggy for power-producing span."
+        ),
+        best_zone="Root",
+        plain_language_summary=(
+            "0% camber, 30% thick; very strong but high drag, mainly for root structure."
+        ),
+        thickness_percent=30.0,
+        camber_percent=0.0,
+        camber_position_percent=0.0,
+        recommended_reynolds_min=50_000.0,
+        recommended_reynolds_max=500_000.0,
+        confidence="Estimated",
+        source_note=(
+            "Generated from the standard NACA 4-digit geometry equation; aerodynamic "
+            "performance is an educational estimate unless calibrated with polar data."
+        ),
+        zone_warnings=(
+            "NACA 0030 has high drag and should usually stay near the hub/root.",
+        ),
+    ),
     "NACA 0015": SectionAirfoil(
         name="NACA 0015",
         family="Symmetric airfoil",

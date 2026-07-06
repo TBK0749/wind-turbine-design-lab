@@ -129,9 +129,11 @@ def test_design_workspace_controls_are_available() -> None:
     assert any(section.value == "Design workspace" for section in app.subheader)
     assert any(button.label == "Undo last change" for button in app.button)
     assert any(button.label == "Redo" for button in app.button)
+    assert any(button.label == "New blank design" for button in app.button)
     assert any(button.label == "Save design" for button in app.button)
     assert any(button.label == "Load design" for button in app.button)
     assert any(button.label == "Load preset" for button in app.button)
+    assert any(button.label == "Clear section table" for button in app.button)
     assert any(selectbox.label == "Blade preset" for selectbox in app.selectbox)
     assert any("local SQLite" in text.value for text in app.caption)
     assert any("Onshape package" in text.value for text in app.caption)
@@ -145,6 +147,17 @@ def test_load_preset_does_not_modify_instantiated_widget_state() -> None:
     app = load_preset_button.click().run()
 
     assert not app.exception
+
+
+def test_new_blank_design_loads_minimal_custom_table() -> None:
+    app_path = Path(__file__).parents[1] / "app" / "main.py"
+    app = AppTest.from_file(str(app_path), default_timeout=15).run()
+
+    new_blank_button = next(button for button in app.button if button.label == "New blank design")
+    app = new_blank_button.click().run()
+
+    assert not app.exception
+    assert any("NACA 4412 → NACA 0012" in text.value for text in app.markdown)
 
 
 def test_bemt_lite_model_mode_is_visible() -> None:

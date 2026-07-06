@@ -131,3 +131,47 @@ def test_source_backed_airfoil_names_are_student_facing() -> None:
     assert "Selig S1223" not in options
     assert "NREL S822" in options
     assert "NREL S823" in options
+
+
+def test_thick_symmetric_naca_root_airfoils_are_available() -> None:
+    options = section_airfoil_options()
+    naca_0024 = get_section_airfoil("NACA 0024")
+    naca_0030 = get_section_airfoil("NACA 0030")
+
+    assert "NACA 0024" in options
+    assert "NACA 0030" in options
+    assert naca_0024.thickness_percent == pytest.approx(24.0)
+    assert naca_0024.camber_percent == pytest.approx(0.0)
+    assert naca_0024.best_zone == "Root"
+    assert naca_0030.thickness_percent == pytest.approx(30.0)
+    assert "drag" in naca_0030.zone_warnings[0]
+
+
+def test_thick_symmetric_naca_sections_simulate_without_polar_error() -> None:
+    sections = (
+        BladeSection(
+            position_m=0.06,
+            chord_m=0.08,
+            twist_angle_deg=12.0,
+            airfoil_name="NACA 0030",
+        ),
+        BladeSection(
+            position_m=0.45,
+            chord_m=0.03,
+            twist_angle_deg=0.0,
+            airfoil_name="NACA 0024",
+        ),
+    )
+
+    result = simulate(
+        SimulationInput(
+            wind_speed_m_s=3.6,
+            rotor_radius_m=0.45,
+            hub_radius_m=0.05,
+            blade_sections=sections,
+        )
+    )
+
+    assert result.rpm >= 0.0
+    assert result.electrical_power_mw >= 0.0
+    assert result.representative_airfoil_name in {"NACA 0024", "NACA 0030"}

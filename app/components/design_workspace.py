@@ -5,7 +5,13 @@ from __future__ import annotations
 import streamlit as st
 
 from windlab.blade_presets import blade_preset_options, get_blade_preset, preset_to_simulation_input
-from windlab.design_state import DEFAULT_DESIGN_NAME, default_design_input, design_input_to_dict
+from windlab.design_state import (
+    BLANK_DESIGN_NAME,
+    DEFAULT_DESIGN_NAME,
+    blank_design_input,
+    default_design_input,
+    design_input_to_dict,
+)
 from windlab.design_store import DesignStore
 from windlab.models import SimulationInput
 
@@ -178,7 +184,16 @@ def render_design_workspace() -> DesignStore | None:
         "Use Undo/Redo for simulator changes; browser Command+Z does not reliably undo widgets."
     )
 
-    undo_col, redo_col, reset_col = st.columns(3)
+    new_col, undo_col, redo_col, reset_col = st.columns(4)
+    with new_col:
+        if st.button(
+            "New blank design",
+            width="stretch",
+            help="Start from a minimal two-section table instead of a blade preset.",
+        ):
+            st.session_state[WORKSPACE_NAME_KEY] = BLANK_DESIGN_NAME
+            _set_active_design(blank_design_input())
+            st.rerun()
     with undo_col:
         if st.button("Undo last change", disabled=not bool(_history()), width="stretch"):
             _undo()
