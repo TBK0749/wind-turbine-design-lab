@@ -37,8 +37,9 @@ def simulate_generator(
     The open-circuit voltage scales linearly with generator RPM. Current follows
     the generator's internal resistance plus the external load. Output is capped
     by the mechanical power available after the stated conversion efficiency.
-    When load feedback is enabled, an overloaded resistive demand reduces the
-    operating generator RPM enough for the ideal load power to match the cap.
+    When load feedback is enabled, electrical demand continuously reduces the
+    operating generator RPM. The first-order factor approaches the existing
+    mechanical-power cap smoothly instead of waiting until demand exceeds it.
     """
 
     unloaded_generator_rpm = rotor_rpm * gear_ratio
@@ -47,16 +48,19 @@ def simulate_generator(
     total_resistance = internal_resistance_ohm + load_resistance_ohm
     ideal_current_a = open_circuit_voltage / total_resistance
     ideal_load_power_w = ideal_current_a**2 * load_resistance_ohm
+    ideal_generated_power_w = open_circuit_voltage * ideal_current_a
     maximum_electrical_power_w = mechanical_power_w * efficiency_percent / 100.0
     generator_load_factor = 1.0
 
     if (
         apply_load_feedback
         and cap_output_by_mechanical_power
-        and ideal_load_power_w > maximum_electrical_power_w
-        and ideal_load_power_w > 0.0
+        and ideal_generated_power_w > 0.0
     ):
-        generator_load_factor = sqrt(maximum_electrical_power_w / ideal_load_power_w)
+        generator_load_factor = sqrt(
+            maximum_electrical_power_w
+            / (maximum_electrical_power_w + ideal_generated_power_w)
+        )
         generator_rpm = unloaded_generator_rpm * generator_load_factor
         open_circuit_voltage = volts_per_1000_rpm * generator_rpm / 1000.0
         ideal_current_a = open_circuit_voltage / total_resistance

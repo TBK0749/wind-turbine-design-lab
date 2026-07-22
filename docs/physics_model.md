@@ -51,18 +51,21 @@ Pelectrical = Vload × I
 ```
 
 By default, the electrical result is capped at mechanical power multiplied by
-the stated generator efficiency. The app also applies a simple generator-load
-feedback factor. If the ideal resistive-load demand is larger than the
-available electrical power, the generator operating RPM is reduced by:
+the stated generator efficiency. The app also applies a continuous first-order
+generator-load feedback factor. Generated electrical demand includes both the
+external load and the generator's internal resistance:
 
 ```text
-load factor = √(available electrical power / ideal resistive-load power)
+ideal generated power = Voc × I
+load factor = √(available electrical power /
+                (available electrical power + ideal generated power))
 loaded generator RPM = unloaded generator RPM × load factor
 ```
 
-This keeps the estimated mW inside the available mechanical-power budget and
-shows when an aggressive electrical load would pull the rotor away from its
-unloaded speed. Competition power is displayed in milliwatts:
+This gives even sub-cap electrical loading a small braking effect, approaches
+the available mechanical-power cap smoothly under heavy loading, and shows
+when an aggressive electrical load would pull the rotor away from its unloaded
+speed. Competition power is displayed in milliwatts:
 
 ```text
 mW = volts × milliamps
@@ -258,10 +261,10 @@ values for simpler classroom comparison. Simple root/tip geometry still uses
 the empirical Cp path in the dashboard because a reliable BEMT calculation
 needs measured radial chord and twist distribution.
 
-The generator model is a simplified DC equivalent. It now includes a first-order
-load feedback factor when electrical demand exceeds available converted
-mechanical power, but it still does not recalculate the full aerodynamic power
-curve at the new operating TSR. It also does not model nonlinear motor losses,
+The generator model is a simplified DC equivalent. It includes a continuous
+first-order load feedback factor based on electrical demand relative to
+available converted mechanical power, but it still does not recalculate the
+full aerodynamic power curve at the new operating TSR. It also does not model nonlinear motor losses,
 rectifier losses, battery charging, or detailed startup dynamics. The
 aerodynamic model does not yet use external measured airfoil polar files and
 does not calculate structural stress, fatigue, control systems, or turbulent

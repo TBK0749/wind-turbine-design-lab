@@ -13,6 +13,7 @@ def test_generator_obeys_ohms_law_at_load() -> None:
         efficiency_percent=80.0,
         gear_ratio=1.0,
         trial_duration_s=60.0,
+        apply_load_feedback=False,
     )
     assert result.open_circuit_voltage_v == pytest.approx(2.0)
     assert result.load_voltage_v == pytest.approx(1.0)
@@ -53,6 +54,24 @@ def test_generator_load_feedback_reduces_operating_rpm_when_overloaded() -> None
     assert result.generator_rpm < 10.0
     assert result.generator_load_factor < 0.01
     assert result.electrical_power_mw == pytest.approx(0.5)
+
+
+def test_generator_load_feedback_responds_before_power_cap_is_reached() -> None:
+    result = simulate_generator(
+        rotor_rpm=1000.0,
+        mechanical_power_w=10.0,
+        volts_per_1000_rpm=10.0,
+        internal_resistance_ohm=100.0,
+        load_resistance_ohm=100.0,
+        efficiency_percent=80.0,
+        gear_ratio=1.0,
+        trial_duration_s=60.0,
+        apply_load_feedback=True,
+    )
+
+    assert result.electrical_power_mw < 8000.0
+    assert 0.0 < result.generator_load_factor < 1.0
+    assert result.generator_rpm < result.unloaded_generator_rpm
 
 
 def test_generator_load_feedback_can_be_disabled_for_legacy_cap_behavior() -> None:
