@@ -111,9 +111,7 @@ SECTION_AIRFOILS: dict[str, SectionAirfoil] = {
             "Generated from the standard NACA 4-digit geometry equation; aerodynamic "
             "performance is an educational estimate unless calibrated with polar data."
         ),
-        zone_warnings=(
-            "NACA 0024 can add drag and mass if used away from the root.",
-        ),
+        zone_warnings=("NACA 0024 can add drag and mass if used away from the root.",),
     ),
     "NACA 0030": SectionAirfoil(
         name="NACA 0030",
@@ -136,9 +134,7 @@ SECTION_AIRFOILS: dict[str, SectionAirfoil] = {
             "Generated from the standard NACA 4-digit geometry equation; aerodynamic "
             "performance is an educational estimate unless calibrated with polar data."
         ),
-        zone_warnings=(
-            "NACA 0030 has high drag and should usually stay near the hub/root.",
-        ),
+        zone_warnings=("NACA 0030 has high drag and should usually stay near the hub/root.",),
     ),
     "NACA 0015": SectionAirfoil(
         name="NACA 0015",

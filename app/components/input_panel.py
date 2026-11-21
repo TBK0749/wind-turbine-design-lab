@@ -347,7 +347,9 @@ def render_input_panel() -> SimulationInput:
         if section_frame_state_key not in st.session_state:
             st.session_state[section_frame_state_key] = _section_frame_from_sections(base_sections)
 
-        section_frame_source = _section_frame_with_columns(st.session_state[section_frame_state_key])
+        section_frame_source = _section_frame_with_columns(
+            st.session_state[section_frame_state_key]
+        )
         complete_rows = _complete_section_rows(section_frame_source)
         first_position_cm = (
             float(complete_rows.iloc[0]["Position (cm)"]) if not complete_rows.empty else 6.0

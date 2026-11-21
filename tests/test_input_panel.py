@@ -2,11 +2,11 @@ import pytest
 
 from app.components.input_panel import (
     _insert_interpolated_section_rows,
+    _resolve_rotor_radius_for_sections,
     _root_refinement_positions,
     _section_frame_from_sections,
     _sections_from_frame,
 )
-from app.components.input_panel import _resolve_rotor_radius_for_sections
 from windlab.models import BladeSection
 
 

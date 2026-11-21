@@ -1,13 +1,15 @@
 import pytest
 
+from scripts.compare_low_wind_blades import blade
 from windlab.blade_presets import blade_preset_options, get_blade_preset, preset_to_simulation_input
+from windlab.operating_point import aerodynamic_torque
 from windlab.simulator import simulate
 
 
-def test_seven_presets_fit_one_meter_three_blade_rule() -> None:
+def test_eight_presets_fit_one_meter_three_blade_rule() -> None:
     presets = blade_preset_options()
 
-    assert len(presets) == 7
+    assert len(presets) == 8
     for preset in presets:
         assert preset.rotor_radius_m <= 0.50
         assert preset.blade_count == 3
@@ -50,6 +52,28 @@ def test_low_wind_preset_targets_classroom_tunnel() -> None:
     assert "3.6 m/s" in preset.description
 
 
+@pytest.mark.parametrize("wind_speed", (2.0, 2.5, 3.0))
+def test_low_wind_preset_improves_simulated_power_at_equal_wind(wind_speed: float) -> None:
+    low_wind = preset_to_simulation_input(get_blade_preset("Low Wind 2–3 m/s"))
+    reference = preset_to_simulation_input(get_blade_preset("Max Competition 3.6 m/s"))
+    overrides = {"wind_speed_m_s": wind_speed}
+
+    low_wind_result = simulate(low_wind.model_copy(update=overrides))
+    reference_result = simulate(reference.model_copy(update=overrides))
+
+    assert low_wind_result.electrical_power_mw > reference_result.electrical_power_mw
+
+
+def test_revised_low_wind_blade_improves_on_original_across_the_target_range() -> None:
+    original = blade("SG6042", "SG6043", "SG6043", 1.0, 1.0)
+    selected = preset_to_simulation_input(get_blade_preset("Low Wind 2–3 m/s"))
+    for wind in (2.0, 2.25, 2.5, 2.75, 3.0):
+        old, new = (b.model_copy(update={"wind_speed_m_s": wind}) for b in (original, selected))
+        assert simulate(new).electrical_power_mw > simulate(old).electrical_power_mw
+        if wind == 2.0:
+            assert aerodynamic_torque(new, 0.0) >= aerodynamic_torque(old, 0.0)
+
+
 def test_presets_are_smooth_enough_for_beginner_lofting() -> None:
     for preset in blade_preset_options():
         sections = preset.sections
@@ -66,10 +90,11 @@ def test_presets_are_smooth_enough_for_beginner_lofting() -> None:
         assert "S1223" not in airfoils
 
 
-def test_max_competition_preset_is_best_simulated_competition_starting_point() -> None:
+def test_max_competition_preset_leads_among_presets_targeting_3_6_m_s() -> None:
     powers_by_name = {
         preset.name: simulate(preset_to_simulation_input(preset)).electrical_power_mw
         for preset in blade_preset_options()
+        if preset.wind_speed_m_s == 3.6
     }
 
     best_name = max(powers_by_name, key=powers_by_name.get)
@@ -87,5 +112,6 @@ def test_preset_names_are_stable() -> None:
         "High Starting Torque",
         "High RPM / Low Drag Tip",
         "Low Wind 3.6 m/s Classroom Tunnel",
+        "Low Wind 2–3 m/s",
         "Easy CAD / Easy Print",
     ]

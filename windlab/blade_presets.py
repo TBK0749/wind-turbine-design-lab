@@ -183,6 +183,33 @@ _PRESETS: tuple[BladePreset, ...] = (
         ),
     ),
     BladePreset(
+        name="Low Wind 2–3 m/s",
+        description=(
+            "A 9-section blade for 2–3 m/s, loaded at 2.5 m/s. SG6043 runs from "
+            "21.4 cm to the tip. This design gave the best minimum power gain over "
+            "the original Low Wind blade in our simulation search. Test self-starting "
+            "with the generator connected at 2 m/s."
+        ),
+        tradeoffs=(
+            "Predicted to produce more electrical power than Max Competition at "
+            "2.0, 2.5, and 3.0 m/s under the same classroom settings.",
+            "Wider chords can add mass. Enter the measured blade mass before comparing builds.",
+            "Verify self-starting in the tunnel with the generator and load attached.",
+        ),
+        sections=(
+            _section(6.0, 12.54, 18.4, "NACA 4418"),
+            _section(10.0, 11.55, 14.6, "NACA 4418"),
+            _section(15.7, 10.55, 11.2, "SG6040"),
+            _section(21.4, 9.52, 7.9, "SG6043"),
+            _section(27.1, 8.43, 5.1, "SG6043"),
+            _section(32.9, 7.29, 2.9, "SG6043"),
+            _section(38.6, 6.08, 1.4, "SG6043"),
+            _section(44.3, 4.77, 0.3, "SG6043"),
+            _section(50.0, 3.22, 0.0, "SG6043"),
+        ),
+        wind_speed_m_s=2.5,
+    ),
+    BladePreset(
         name="Easy CAD / Easy Print",
         description=(
             "A practical build-first preset with easier airfoil families and moderate "

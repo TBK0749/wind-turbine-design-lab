@@ -7,6 +7,20 @@ blade geometry, mass, and material affect estimated turbine performance.
 > The results are simplified educational estimates. They are not certified
 > engineering calculations and must not be used to approve a real turbine.
 
+## เริ่มใช้ Low Wind 2–3 m/s สำหรับนักเรียน
+
+[ดาวน์โหลดโปรเจกต์เป็น ZIP](https://github.com/TBK0749/wind-turbine-design-lab/archive/refs/heads/main.zip) แล้วแตกไฟล์ หากใช้ครั้งแรกให้ทำตาม [คู่มือติดตั้งสำหรับ Mac และ Windows](output/pdf/Wind_Turbine_Design_Lab_Local_Installation_Guide.pdf)
+
+เมื่อติดตั้ง uv แล้ว เปิด Terminal ในโฟลเดอร์ที่มี `pyproject.toml` แล้วรัน
+
+```bash
+uv run streamlit run app/main.py
+```
+
+เปิด [เว็บบนเครื่อง](http://localhost:8501) แล้วเลือก **Design workspace → Blade preset → Low Wind 2–3 m/s → Load preset** ความเร็วลมเริ่มต้นคือ **2.5 m/s**
+
+[อ่านรายงานวิจัยภาษาไทย](docs/low_wind_design_th.md) · [ดาวน์โหลดชุดไฟล์ Onshape](https://raw.githubusercontent.com/TBK0749/wind-turbine-design-lab/main/output/onshape/low_wind_2_3_research.zip) · [สคริปต์เปรียบเทียบใบพัด](scripts/compare_low_wind_blades.py)
+
 ## MVP features
 
 - Configure wind, rotor, blade geometry, mass, and material.
@@ -30,7 +44,7 @@ blade geometry, mass, and material affect estimated turbine performance.
 - Autosave the current design to a local SQLite database on the user's computer.
 - Undo/Redo recent simulator changes inside the app.
 - Save and load named local designs without accounts or cloud storage.
-- Load seven 3-blade starter presets for a maximum 1 m rotor diameter.
+- Load eight 3-blade starter presets for a maximum 1 m rotor diameter.
 - Download an Onshape package with CSV, DXF, JSON, and a Markdown build guide.
 
 ## Local installation guide
@@ -143,9 +157,9 @@ Use the **Design workspace** panel at the top of the Design Lab to:
 - restore the current design after a browser refresh;
 - reset to the default competition design;
 - save and load named designs on the same computer;
-- load seven 3-blade starter presets for the 1 m maximum rotor-diameter rule.
+- load eight 3-blade starter presets for the 1 m maximum rotor-diameter rule.
 
-The seven presets are starting points for experiments, not guaranteed winning
+The eight presets are starting points for experiments, not guaranteed winning
 designs. Students should still compare predicted mW, print quality, startup
 behavior, and measured wind-tunnel results.
 

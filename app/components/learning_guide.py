@@ -18,7 +18,7 @@ def render_quick_start_guide() -> None:
    air density if known, and the fixed trial duration.
 2. **Enter the blade geometry.** Use the section table for measured blade stations:
    position, chord, local twist, station airfoil, and the airfoil's role.
-3. **Use a starter preset if helpful.** The Design workspace includes five
+3. **Use a starter preset if helpful.** The Design workspace includes eight
    3-blade presets for a maximum 1 m rotor diameter. Treat them as starting
    points, not guaranteed winners.
 4. **Choose or review airfoils.** Section-table mode can assign different NACA
@@ -67,7 +67,7 @@ def render_quick_start_guide() -> None:
   does not reliably undo Streamlit widget changes.
 - **Named saves:** save several candidate designs and load them later on the
   same computer.
-- **Blade presets:** load seven 3-blade starter presets for the 1 m maximum
+- **Blade presets:** load eight 3-blade starter presets for the 1 m maximum
   rotor-diameter rule, then edit the table for your own experiment.
 """
     )

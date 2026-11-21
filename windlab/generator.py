@@ -52,14 +52,9 @@ def simulate_generator(
     maximum_electrical_power_w = mechanical_power_w * efficiency_percent / 100.0
     generator_load_factor = 1.0
 
-    if (
-        apply_load_feedback
-        and cap_output_by_mechanical_power
-        and ideal_generated_power_w > 0.0
-    ):
+    if apply_load_feedback and cap_output_by_mechanical_power and ideal_generated_power_w > 0.0:
         generator_load_factor = sqrt(
-            maximum_electrical_power_w
-            / (maximum_electrical_power_w + ideal_generated_power_w)
+            maximum_electrical_power_w / (maximum_electrical_power_w + ideal_generated_power_w)
         )
         generator_rpm = unloaded_generator_rpm * generator_load_factor
         open_circuit_voltage = volts_per_1000_rpm * generator_rpm / 1000.0
